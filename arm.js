@@ -496,8 +496,20 @@
             }
             return false;
         },
+        groupBy: function(arr, field) {
+            var result = {};
+            var iterator = _.isFunction(field) ? field : function(obj) {
+                return obj[field];
+            };
+            _.each(arr, function(item, index) {
+                var key = iterator(item, index);
+                result[key] = result[key] || [];
+                result[key].push(item);
+            });
+            return result;
+        },
         indexBy: function(arr, field) {
-            if (!_.isArrayOrList(arr)) {
+            if (!_.isArrayOrList(arr) || !field) {
                 return arr;
             }
             var tmp = {};
@@ -819,6 +831,9 @@
         },
         hashCode: function() {
             return _.hashCode(this.toString());
+        },
+        size: function() {
+            return this.keys().length;
         },
         containsKey: function(attr) {
             return this.has(attr);
@@ -1163,8 +1178,10 @@
             return new ArrayList(_.union(this, arr, comparer));
         },
         indexBy: function(filed) {
-            var obj = _.indexBy(this, filed);
-            return new HashMap(obj);
+            return new HashMap( _.indexBy(this, filed) );
+        },
+        groupBy: function(filed) {
+            return new HashMap( _.groupBy(this, filed) );
         },
         sortBy: function(filed, order) {
             var arr = _.sortBy(this, filed, order);
@@ -1186,14 +1203,6 @@
             ArrayList.prototype[method] = arrPro[method];
         }
     );
-    _.each(['groupBy', 'indexBy'], function(method) {
-        ArrayList.prototype[method] = function(value, context) {
-            var iterator = _.isFunction(value) ? value : function(model) {
-                return model.get(value);
-            };
-            return _[method].apply(this, [iterator, context]);
-        };
-    });
 
     // Module: one module of application, include sub modules 
     Module = function Module(data, config) {

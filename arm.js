@@ -1,7 +1,6 @@
 /*!
  * The open module JavaScript framework
  * 
- * Copyright (c) 2013-2014 Lego Team. This code may be freely distributed.
  * @license Licensed under MIT license
  * @class   JavaScript MVC frameworks for enterprise application development
  * @name    Arm
@@ -641,10 +640,16 @@
                     for (var prop in source) {
                         dest = origin[prop];
                         src = source[prop];
+                        // don't extend prototype for HashMap or ArrayList
+                        if (!source.hasOwnProperty(prop) &&
+                            ( source instanceof HashMap || source instanceof ArrayList )
+                            ) {
+                            continue;
+                        }
                         if (dest === src) {
                             continue;
                         }
-                        if ((depth > 0 || depth === true) &&
+                        if (depth > 0 &&
                             (_.isObjectOrMap(src) || _.isArrayOrList(src))) {
                             depth = depth === true ? depth : depth - 1;
                             if (_.isObjectOrMap(src)) {
@@ -822,13 +827,10 @@
 
     // HashMap: key-value map
     HashMap = function HashMap(data) {
-        this.init.apply(this, arguments);
+        _.extend(this, data);
     };
     HashMap.prototype = {
         constructor: HashMap,
-        init: function(data) {
-            _.extend(this, data);
-        },
         hashCode: function() {
             return _.hashCode(this.toString());
         },
@@ -949,16 +951,13 @@
 
     // Model: JSON object, key(literals)-value(literals) object
     Model = function Model(data) {
-        this.init.apply(this, arguments);
+        _.extend(this, data);
     };
     Model.prototype = {
         constructor: Model,
         // defined attributeKey and Type for data serialize
         attributeKey: 'id',
         attributeType: 'type',
-        init: function(data) {
-            _.extend(this, data);
-        },
         update:  function(key, value, options) {
             if ('object' == typeof key) {
                 for (var attr in  key) {
@@ -1009,21 +1008,17 @@
 
     // ArrayList: model's collection
     ArrayList = function ArrayList(models) {
-        return this.init.apply(this, arguments);
+        this.empty();
+        this.length = 0;
+        if (models !== undefined && models !== null) {
+            models = _.isArrayOrList(models) ? models : [models];
+            this.__model__ = _.deepClone(models[0]);
+        }
+        this.add(models);
     };
     ArrayList.prototype = {
         constructor: ArrayList,
         __model__: null,
-        init: function(models) {
-            this.empty();
-            this.length = 0;
-            if (models !== undefined && models !== null) {
-                models = _.isArrayOrList(models) ? models : [models];
-                this.__model__ = _.deepClone(models[0]);
-            }
-            this.add(models);
-            return this;
-        },
         valueOf: function() {
             return slice.call(this);
         },
@@ -1206,21 +1201,17 @@
 
     // Module: one module of application, include sub modules 
     Module = function Module(data, config) {
-        // set create to `Module`
         this.create = Arm.create;
-        this.init.apply(this, arguments);
+        _.extend(this, data);
     };
     Module.prototype = {
-        constructor: Module,
-        init: function(data, config) {
-            _.extend(this, data);
-        }
+        constructor: Module
     };
 
     // Action: control object and declare instance for module
     Action = function Action(data, config) {
         config = config || {};
-        this.init.apply(this, arguments);
+        _.extend(this, data);
         if ('string' == typeof this.module && this.module.length > 0) {
             this.module = _.accessProperty(root, this.module);
         }
@@ -1228,9 +1219,6 @@
     };
     Action.prototype = {
         constructor: Action,
-        init: function(data) {
-            _.extend(this, data);
-        },
         getModule: function(name) {
             return root[name] || this.module;
         },
@@ -1321,33 +1309,38 @@
                 return obj;
             }
         },
+        init: function() {
+            this.get.apply(this, arguments);
+        },
         /**
          * execute run method from View's instance
          * @function
-         * @param {string} [name], object's name as 'Module', 'X.View', default is module's view
-         * @param {object} options, params of Class
+         * @param {string} [name] object's name as view instance or 'X.View'
+         * @param {object} [options] params of run method
+         * @param {object} [secondOptions] params of instance
+         * @usage
+         *     Module.Action.run(instance, {run options})
+         *     Module.Action.run('Sub.View', {instance options}, {run options})
+         *     Module.Action.run({run options}), call default View's run
          */
-        run: function(name, options) {
+        run: function(name, options, secondOptions) {
             var self = this;
-            if ('object' == typeof name) {
-                options = name;
+            if (name instanceof Arm.View) {
+                return name.run(options);
+            } else if ('string' == typeof name) {
+                return self.getView(name, options).run(secondOptions);
             }
-            var instance = self.getView(name);
-            instance.run(options);
-            return instance;
+            return self.getView().run(name);
         }
     };
 
     // Util: static method collection, resolve common problem for `View` or `Class`.
     Util = function Util(data) {
-        this.init.apply(this, arguments);
+        _.extend(this, data);
         this.action = _util.getObject(this.action);
     };
     Util.prototype = {
         constructor: Util,
-        init: function(data) {
-            _.extend(this, data);
-        },
         getAction: function() {
             return this.action;
         }
@@ -1356,14 +1349,11 @@
 
    // basic data object: module config, key-value(literals) object
     Config = function Config(data) {
-        this.init.apply(this, arguments);
+        _.extend(this, data);
         this.action = _util.getObject(this.action);
     };
     Config.prototype = {
         constructor: Config,
-        init: function(data) {
-            _.extend(this, data);
-        },
         getAction: function() {
             return this.action;
         }
@@ -1372,14 +1362,11 @@
 
     // Dao: front-end data interact with server by ajax or socket etc.
     Dao = function Dao(data) {
-        this.init.apply(this, arguments);
+        _.extend(this, data);
         this.action = _util.getObject(this.action);
     };
     Dao.prototype = {
         constructor: Dao,
-        init: function(data) {
-            _.extend(this, data);
-        },
         getAction: function() {
             return this.action;
         }

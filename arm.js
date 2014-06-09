@@ -44,7 +44,9 @@
         jsonParse     = JSON.parse;
         jsonStringify = JSON.stringify;
     } else {
-        jsonParse     = $.parseJSON;
+        jsonParse = $.parseJSON || function(data) {
+            return (new Function('return ' + data))();
+        };
     }
 
     if (!logger.log) {
@@ -146,7 +148,6 @@
             return true;
         },
         isEqual: function ( one, two ) {
-            // var callee = arguments.callee;
             var prop, i, l = 0;
             var callee = _.isEqual;
             if (one === two) {
@@ -720,8 +721,68 @@
             }
             return clone;
         },
-        // use `fetch` will depends jQuery or other ajax library
-        ajax: function(url, type, data, handle) {
+        ajax: function(options) {
+            options = options || {};
+            var type = options.type || 'GET';
+            var url = options.url;
+            var contentType = options.contentType || 'application/x-www-form-urlencoded; charset=UTF-8';
+            var dataType = options.dataType || 'JSON';
+            dataType = dataType.toUpperCase();
+            var cache = options.cache || false;
+            var async = options.async || true;
+            var _getXHR = function() {
+                return new XMLHttpRequest() ||
+                    new ActiveXObject('Msxml2.XMLHTTP') ||
+                    new ActiveXObject('Microsoft.XMLHTTP');
+            };
+            var xhr = _getXHR();
+            var data, value;
+            if (typeof options.data == 'object') {
+                for (var item in options.data) {
+                    value = type == 'GET' ? encodeURIComponent(options.data[item]) : options.data[item];
+                    data += (item + '=' + value + '&');
+                }
+                if (data.length > 0 && data[data.length - 1] == '&') {
+                    data = data.substr(0, data.length - 1);
+                }
+            }
+            data = data || options.data;
+            if (!cache && url && dataType == 'JSON') {
+                var flag = url.indexOf('?') != -1 ? '&' : '?';
+                url = url + flag +  data + '&' + '_=' + new Date().getTime();
+            }
+
+            xhr.open(type, url, async);
+            xhr.setRequestHeader('Content-Type', contentType);
+            for (var key in options.headers) {
+                xhr.setRequestHeader(key, options.headers[key]);
+            }
+            xhr.upload.onprogress = function(e) {
+                options.progress.apply(xhr, e);
+            };
+            xhr.onreadystatechange = function() {
+                var data = xhr.responseText || xhr.responseXML;
+                if (data && dataType == 'JSON') {
+                    data = jsonParse(data);
+                }
+                if (xhr.readyState == 4) {
+                    var stat = xhr.status;
+                    if ((stat >= 200 && stat < 300) || stat == 304 ||
+                        stat == 1223 || stat === 0) {
+                        if (options.success) {
+                            options.success.call(xhr, data);
+                        }
+                    } else {
+                        if (options.error) {
+                            options.error.call(xhr, data);
+                        }
+                    }
+                }
+            };
+            xhr.send(data || null);
+            return xhr;
+        },
+        send: function(url, type, data, handle, cache) {
             var callback, success, error;
             if (typeof handle == 'function') {
                 callback = handle;
@@ -734,23 +795,22 @@
                     logger.error(err);
                 };
             }
-            if ('function' == typeof $.ajax) {
-                $.ajax({
-                    url: url,
-                    dataType: 'json',
-                    type: type || 'GET',
-                    cache: false,
-                    data: data,
-                    success: function(json) {
-                        var cb = callback || success;
-                        cb.call(this, json);
-                    },
-                    error: function(err) {
-                        var cb = callback || error;
-                        cb.call(this, err);
-                    }
-                });
-            }
+            var ajax = $.ajax || _.ajax;
+            ajax({
+                url: url,
+                type: type || 'GET',
+                cache: cache || false,
+                data: data,
+                progress: handle.progress,
+                success: function(json) {
+                    var cb = callback || success;
+                    cb.call(this, json);
+                },
+                error: function(err) {
+                    var cb = callback || error;
+                    cb.call(this, err);
+                }
+            });
         },
         // 1: call function, data, handle[callback]
         // 2: url, type, data, handle. handle is an object or callback
@@ -765,7 +825,7 @@
             if (fn) {
                 fn.apply(fn, args);
             } else {
-                _.ajax.apply(this, args);
+                _.send.apply(this, args);
             }
         },
         exports: function(obj, origin) {
@@ -778,16 +838,23 @@
         currying: function(fn) {
             var args = slice.call(arguments, 1);
             return function() {
-                return fn.apply(null, args.concat(slice.call(arguments)));
+                return fn.apply(this, args.concat(slice.call(arguments, 0)));
             };
         },
-        bind: _bind || function(fn, context) {
-            var scope = context || fn.scope || this;
-            var idx = context ? 2 : 1;
+        curryingSelf: function() {
+            var fn = this;
+            var args = slice.call(arguments, 0);
+            return function() {
+                return fn.apply(fn.scope, args.concat(slice.call(arguments, 0)));
+            };
+        },
+        bind: function(context, fn) {
+            var idx = arguments.length;
+            fn = fn || this;
             var args = slice.call(arguments, idx);
             return function() {
-                var _args = args.concat(slice.call(arguments));
-                return fn.apply(scope, _args);
+                var _args = args.concat(slice.call(arguments, 0));
+                return fn.apply(context, _args);
             };
         },
         // TODO: AOP after
@@ -797,8 +864,8 @@
         before: function() {
         },
         tmpl: function(tmplElement, data) {
-            if ('function' == typeof $.find) {
-                return $.find(tmplElement).tmpl(data);
+            if ('function' == typeof $) {
+                return $(tmplElement).tmpl(data);
             }
             return null;
         }
@@ -983,9 +1050,6 @@
                 success: function(json) {
                     if (json === undefined) {
                         return self;
-                    }
-                    if (typeof json != 'object') {
-                        json = jsonParse(json);
                     }
                     var data = ('object' == typeof json.data) ? json.data : json;
                     self.update(data);
@@ -1289,7 +1353,7 @@
                     _Arm._data.push(instance);
                     return cache[fullName];
                 }
-                if(instance === undefined || instance === null) {
+                if(instance === undefined) {
                     instance = new Clazz(options);
                     // add instance of `Class` to Arm.data
                     _Arm._data.push(instance);
@@ -1345,7 +1409,7 @@
             return this.action;
         }
     };
-    _.inherits(Util, HashMap);
+    // _.inherits(Util, HashMap);
 
    // basic data object: module config, key-value(literals) object
     Config = function Config(data) {
@@ -1358,7 +1422,7 @@
             return this.action;
         }
     };
-    _.inherits(Config, HashMap);
+    // _.inherits(Config, HashMap);
 
     // Dao: front-end data interact with server by ajax or socket etc.
     Dao = function Dao(data) {
@@ -1377,8 +1441,6 @@
     };
     Arm.Class.prototype = {
         constructor: Arm.Class,
-        init: function(options) {
-        },
         update: function(options, properties) {
             _.extend(true, this.options, options);
             return this;
@@ -1510,17 +1572,20 @@
             Class.inherits = function (parent) {
                 return _.inherits(this, parent);
             };
+            Class.prototype.getView = function () {
+                return this.view || this.getAction().getView();
+            };
             // copy method to  prototype
             for (var item in data) {
                 if (item !== 'options' && item !== 'properties') {
                     Class.prototype[item] = data[item];
                 }
             }
-            // TODO: bind, currying, after, before
+            // bind, currying, after, before
             for (var fn in Class.prototype) {
                 if ('function' == typeof Class.prototype[fn]) {
                     Class.prototype[fn].bind = _.bind;
-                    Class.prototype[fn].currying = _.currying;
+                    Class.prototype[fn].currying = _.curryingSelf;
                     Class.prototype[fn].after = _.after;
                     Class.prototype[fn].before = _.before;
                 }
@@ -1548,25 +1613,29 @@
                 if (!this.options.element && this.options.$container) {
                     this.options.element = this.options.$container[0];
                 }
-                if (!this.options.$container && this.options.element && $.find) {
-                    this.options.$container = $.find(this.options.element);
+                if (!this.options.$container && this.options.element && $) {
+                    this.options.$container = $(this.options.element);
                 }
                 if (!_.isElement(this.options.element)) {
                     logger.warn('new View init:', this, 'is not defined element or $container.');
                 }
-                this.construct = data.construct || data.init || this.init;
+                this.construct = data.construct || data.init || function () {};
                 this.construct.call(this);
             }
             _.inherits(View, Arm.View);
             _.extend(View.prototype, {
                 init: function (options) {
-                    this.bindEvent(options);
+                    if (this.bindEvent) {
+                        this.bindEvent(options);
+                    }
                 },
-                bindEvent: function (options) {
-                    logger.log('view.bindEvent:', this, options);
-                },
+                // every view should own bindEvent for bind events
+                // bindEvent: function(options) { },
+                // every view should own run for Action
+                // run: function(options) { },
                 find: function (selector) {
-                    return this.getContainer().find(selector);
+                    return this.getContainer().find ? this.getContainer().find(selector) :
+                        this.getContainer().querySelectorAll(selector);
                 },
                 render: function (ele, tmplElement, data, process) {
                     ele = ele || this.getElement();
@@ -1590,8 +1659,8 @@
                     }
                     return this;
                 },
-                run: function () {
-                    logger.log('view.run:', this, arguments);
+                getClass: function () {
+                    return this['class'] || this.getAction().getClass();
                 }
             });
             // set function events for `View`
@@ -1628,7 +1697,6 @@
             for (var fn in View.prototype) {
                 if ('function' == typeof View.prototype[fn]) {
                     View.prototype[fn].bind = _.bind;
-                    View.prototype[fn].currying = _.currying;
                     View.prototype[fn].after = _.after;
                     View.prototype[fn].before = _.before;
                 }

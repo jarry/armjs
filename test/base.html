@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title> Base Test </title>
+  <meta charset="utf-8">
+  <meta name="Author" content="">
+  <meta name="Keywords" content="">
+  <meta name="Description" content="">
+  <script charset="utf-8" type="text/javascript" src="/qui/test/lib/qunit-1.14.0.js"></script>
+  <link charset="utf-8" rel="stylesheet" href="/qui/test/lib/qunit-1.14.0.css">
+  <script charset="utf-8" type="text/javascript" src="/qui/js-src/lib/arm.js"></script>
+
+ </head>
+ <body>
+<script>
+console.log(Arm);
+// 测试数据不要随便改动
+var items = [
+  { id: 1001, type: 1, name: "Edward", value: 21, age: 23 },
+  { id: 1002, type: 2, name: "Sharpe"},
+  { id: 1003, type: 3, name: "And", value: 4, age: 16},
+  { id: 1004, type: 4, name: "The", value:null, age: 14 },
+  { id: 1005, type: 5, name: "Magnetic", age: 45 },
+  { id: 1006, type: 6, name: "Zeros", value: 37, age: 4 },
+  { id: 1007, type: 7, name: "Jarry", value: 4, age: 16}
+];
+
+// arraylist test
+var list1 = new Arm.ArrayList(items);
+var list = Arm.create('ArrayList', items);
+list.get(2).set({ name: 'Jarry', id: 1008});
+// console.log('list:', list);
+// data object test
+module( "group Model test" );
+test( "Collection get size()", function() {
+    equal(list.size(), list.length, "测试Collection长度" );
+});
+test( "Model get attribute", function() {
+    equal(list.get(2).name, "Jarry", "测试Model获取姓名" );
+    deepEqual(list.get(0).getByValue([1, 21]), ["type", "value"], "测试Model获取姓名" );
+    deepEqual(list.get(0).getByAttribute(['name', 'age']), ["Edward", 23], "测试Model获取姓名" );
+    deepEqual(list.get(0).getByAttribute('type'), [1], "测试Model获取姓名" );
+});
+test( "HashMap format", function() {
+    var l = list.clone();
+    l.get(5).format('name', function(value) {
+        return '' + value + '-ext1234'
+    });
+    equal(list.get(5).name, 'Zeros-ext1234' , "测试HashMap format" );
+    l.get(5).format({ 'name': 'Herry' }, function(value) {
+        return '' + value + '-ext4321'
+    });
+    equal(list.get(5).name, 'Herry-ext4321' , "测试HashMap format" );
+
+    var m = l.get(5).format(
+        {
+            'name': 'Zeros',
+            'age': function(value) {
+                return  (value + 5);
+            }
+        }, function(value) {
+            return value + '-ext111'
+        });
+
+    deepEqual(m.name, 'Zeros-ext111' , "测试HashMap format" );
+    deepEqual(m.age, 9 , "测试HashMap format" );
+/* 请在控制台输出测试ArrayList的format
+list.format({
+    'name': function(value) {
+         return value + '222';
+     },
+    'age': null
+}, function(value) {
+   return value + '111';
+});
+*/
+});
+
+test( "Model keys()", function() {
+    equal(list.get(0).keys().toString(), ["id", "type", "name", "value", "age"], "测试Model.keys()" );
+});
+test( "Model values()", function() {
+    console.log('Model values()::', list[2], list.get(2).values(), list.length );
+    equal(list.get(2).values().toString(), "1008,3,Jarry,4,16", "测试Model.keys()" );
+});
+module( "group ArrayList test" );
+test( "ArrayList sortBy(asc)", function() {
+    equal(list.sortBy('name', 'asc').get(1).value, 4, "测试ArrayList指定排序是否正确asc" );
+    console.log(list.sortBy('name', 'asc').get(1).value);
+});
+test( "ArrayList sortBy(desc)", function() {
+    equal(list.orderBy('id', 'desc').get(0).name, ('Jarry'), "测试ArrayList指定排序是否正确desc" );
+});
+test( "ArrayList sortBy(desc)", function() {
+    equal(list.orderBy('id', 'desc').get(0).value, 4, "测试ArrayList指定排序是否正确desc" );
+});
+test( "ArrayList sortBy(asc)", function() {
+    equal(list.orderBy('id', 'asc').get(2).id, 1004, "测试ArrayList指定排序是否正确asc" );
+});
+test( "ArrayList sortBy(desc)", function() {
+    equal(list.orderBy('value', 'desc').get(2).value, 4, "测试ArrayList指定排序是否正确desc" );
+});
+test( "ArrayList indexOf()", function() {
+  var model = list.get(1); // { name: "Sharpe"}
+  equal(list.indexOf(model, 0), 1, "测试ArrayList indexOf" );
+});
+test( "ArrayList getBy...()", function() {
+    deepEqual(list.getByValue([101, 'Jarry'])[0].name, 'Jarry', '测试ArrayList getBy...()');
+    deepEqual(list.getByAttribute('age')[0].name, 'Edward', '测试ArrayList getBy...()');
+});
+
+test( "ArrayList lastIndexOf()", function() {
+  var model = list.get(2); // { name: "Sharpe"}
+  equal(list.lastIndexOf(model), 2, "测试ArrayList lastIndexOf" );
+});
+test( "ArrayList insert()", function() {
+  list.insert(0, [{ name : 'lichunping', age: 101, id: 1009}, { name : 'weiwei', id: 1010}]);
+  equal(list.get(0).name, 'lichunping', "测试ArrayList lastIndexOf" );
+});
+test( "ArrayList unique()", function() {
+    var result2 = list.clone().unique(function(a, b) {
+        return a.value == b.value
+    });
+    equal(result2.length, 4, "测试ArrayList unique" );
+
+    var data = [ {"name":"lichunping","age":16,"id":1009} ];
+    var result = list.clone().intersection(data, function(a, b) {
+        return a.age === b.age
+    });
+    equal(result.get(0).name, 'Jarry', "测试ArrayList intersection" );
+    equal(result.length, 1, "测试ArrayList intersection" );
+
+});
+module( "group ArrayList intersection, union, unique" );
+test( "intersection, union, unique", function() {
+    var a = [1, 'a', 2, 'a'];
+    var b = [1, 'c', 1, 'a', 2];
+    var a_union_b = [1, "c", 1, "a", 2];
+    var a_intersection_b = [1, 1, 'a', 2];
+    equal(Arm._.indexOf(a, 'a'), 1, "测试indexOf" );
+    equal(Arm._.lastIndexOf(b, 1), 2, "测试lastIndexOf" );
+    equal(Arm._.union(a, b).toString(), a_union_b , "测试union" );
+    equal(Arm._.intersection(a, b).toString(), a_intersection_b, "测试intersection" );
+    equal(Arm._.unique(a_intersection_b).toString(), '1,a,2', "测试unique" );
+});
+
+test( "ArrayList intersection()", function() {
+    var _list = Arm.create('ArrayList');
+    var data = Arm.create('Model', { value: 4 } );
+    _list.add( data );
+    var result = list.intersection(_list, function() {
+        return arguments[0].value == arguments[1].value;
+    });
+    equal(result[0].name, 'Jarry', "测试ArrayList intersection2 " );
+});
+
+// inherits test
+module( "group Class inherits test" );
+function Parent(options) {
+    this.options = options || {
+        word: 'parent_word'
+    };
+    this.name = 'parent_name';
+    this.age = 'parent_age';
+    this.arr = ['parent_arr'];
+};
+Parent.static = {
+    a: 'a',
+    b: [1, 2, 3]
+}
+Parent.prototype.getName = function() {
+    return this.name + '_from_parent.';
+};
+Parent.prototype.getAge = function() {
+    return this.age + '_from_parent.';
+};
+Parent.prototype.obj = { 'o1' : 'o1' };
+function Child() {
+    this.name = 'Jarry';
+};
+// 直接继承属性会被继承下来
+Child.prototype.getName = function() {
+    return this.name + '_from_child.';
+}
+Child.prototype.getAge = function() {
+    return this.age + '_from_child.';
+}
+// Child.prototype直接赋值后，Parent.prototype后面更改都将影响实例
+//Child.prototype = new Parent();
+//inherits方法新定义function，故属性和之后追加的方法都不会受到影响
+//Child = Arm._.inherits(Child, Parent);
+// Child = 
+Arm._.inherits(Child, Parent).extend({
+    say: function() {
+        console.log('hello', this.name);
+        return 'hello ' + this.name + '';
+    }
+});
+// 重写的父类影响子类
+Parent.prototype.getName = function() {
+    return this.name + '_from_parent_change.';
+};
+// 追加的父类方法影响子类
+/*
+Parent.prototype.say = function() {
+    return this.name + '_say_from_parent_change.';
+};*/
+var child2 = new Child();
+// inherits不会影响到属性里引用对象的变更，prototype方法如果是object，则会受到影响
+if (child2.obj) {
+    child2.obj.o2 = 'change_obj_111';
+}
+if (child2.arr) {
+    child2.arr.push('change_arr_111');
+}
+child2.getName = function() {
+    console.log('chhild2' + this.name);
+}
+var child1 = new Child();
+</script>
+<div id="qunit"></div>
+<div id="qunit-fixture"></div>
+<script>
+// core test
+test( "object keys", function() {
+    if (Object.keys) {
+        equal(Object.keys({'a': 1, 'b': 2, 'c': 3})[1], 'b', "测试object keys" );
+    }
+    equal(Arm._.keys({'a': 1, 'b': 2, 'c': 3})[1], 'b', "测试Arm keys" );
+
+});
+test( "object indexOf", function() {
+    equal(Arm._.indexOf([1, 2, 3], 2, 1), 1, "测试indexOf" );
+    equal(Arm._.indexOf([1, 2, 3], 2, 3), -1, "测试indexOf" );
+    equal(Arm._.lastIndexOf([1, 2, 1], 3, 2), -1, "测试indexOf" );
+});
+
+test( "inherits", function() {
+  equal(child1.say(), 'hello Jarry', "测试inherits." );
+});
+// Module Test. see module.html
+module( "group Module create" );
+var Mo = Arm.create('Module', {
+    name: 'Mo',
+    SubModule: {
+        
+    }
+});
+Mo.Action = Arm.create('Action', {
+    module: Mo
+})
+Mo.Class = Arm.create('Class', {
+    action: 'Mo.Action'
+});
+Mo.SubModule.Class = Arm.create('Class', {
+    action: Mo.Action
+});
+Mo.View = Arm.create('View', {
+    properties: {
+    },
+    options: {
+    },
+    action: Mo.Action
+});
+Mo.SubModule.View = Arm.create('View', {
+    action: 'Mo.Action',
+    properties: {
+    },
+    options: {
+    }
+});
+</script>
+
+ </body>
+</html>

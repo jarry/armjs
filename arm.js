@@ -835,33 +835,59 @@
                 }
             }
         },
-        currying: function(fn) {
+        curry: function(fn, scope) {
             var args = slice.call(arguments, 1);
             return function() {
-                return fn.apply(this, args.concat(slice.call(arguments, 0)));
+                return fn.apply(scope, args.concat(slice.call(arguments, 0)));
             };
         },
-        curryingSelf: function() {
+        currySelf: function() {
             var fn = this;
             var args = slice.call(arguments, 0);
             return function() {
                 return fn.apply(fn.scope, args.concat(slice.call(arguments, 0)));
             };
         },
-        bind: function(context, fn) {
+        bind: _bind || function(scope, fn) {
             var idx = arguments.length;
             fn = fn || this;
             var args = slice.call(arguments, idx);
             return function() {
                 var _args = args.concat(slice.call(arguments, 0));
-                return fn.apply(context, _args);
+                return fn.apply(scope, _args);
             };
         },
-        // TODO: AOP after
-        after: function() {
+        before: function(fn, scope) {
+            scope = scope || this;
+            var method = function() {
+                fn.apply(this, arguments);
+                return scope.apply(this, arguments);
+            };
+            method.before = _.before;
+            method.after  = _.after;
+            return method;
         },
-        // TODO: AOP before
-        before: function() {
+        after: function(fn, scope) {
+            scope = scope || this;
+            var method = function() {
+                var result = scope.apply(this, arguments);
+                var arg = slice.call(arguments, 0).concat([result]);
+                fn.apply(this, arg);
+                return result;
+            };
+            method.before = _.before;
+            method.after  = _.after;
+            return method;
+        },
+        around: function(fn, scope) {
+            scope = scope || this;
+            function method() {
+                return fn.apply(scope, arguments);
+            }
+            method.before = _.before;
+            method.after  = _.after;
+            method.around = _.around;
+            return method;
         },
         tmpl: function(tmplElement, data) {
             if ('function' == typeof $) {
@@ -1585,9 +1611,9 @@
             for (var fn in Class.prototype) {
                 if ('function' == typeof Class.prototype[fn]) {
                     Class.prototype[fn].bind = _.bind;
-                    Class.prototype[fn].currying = _.curryingSelf;
-                    Class.prototype[fn].after = _.after;
+                    Class.prototype[fn].curry = _.currySelf;
                     Class.prototype[fn].before = _.before;
+                    Class.prototype[fn].after = _.after;
                 }
             }
             return Class;
@@ -1697,8 +1723,9 @@
             for (var fn in View.prototype) {
                 if ('function' == typeof View.prototype[fn]) {
                     View.prototype[fn].bind = _.bind;
-                    View.prototype[fn].after = _.after;
+                    View.prototype[fn].curry = _.currySelf;
                     View.prototype[fn].before = _.before;
+                    View.prototype[fn].after = _.after;
                 }
             }
             return View;

@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title> Event Test </title>
+  <meta charset="utf-8">
+  <meta name="Author" content="">
+  <meta name="Keywords" content="">
+  <meta name="Description" content="">
+  <script charset="utf-8" type="text/javascript" src="/qui/test/lib/qunit-1.14.0.js"></script>
+  <link charset="utf-8" rel="stylesheet" href="/qui/test/lib/qunit-1.14.0.css">
+  <script charset="utf-8" type="text/javascript" src="/qui/js-src/ui.js"></script>
+  <script charset="utf-8" type="text/javascript" src="/qui/js-src/lib/arm.js"></script>
+ </head>
+
+ <body>
+
+<div id="Container" style="background:blue;">
+    Container: click me! <a href="#" class="btn">view.run()</a>
+    <ul class="list" style="background:red;">
+        list: click me.
+        <li class="item" style="background:green;"> Item:  mouseover and mouseout
+        <em style="background:white;">Jarry</em>
+        <span style="background:gray;">this is block</span>
+        </li>
+    <ul>
+</div>
+
+<div id="qunit"></div>
+<div id="qunit-fixture"></div>
+<script>
+console.log(Arm);
+// Event test
+module( "group Event test" );
+var Mo = Arm.create('Module', {
+    name: 'Mo',
+    Sub: { }
+});
+Mo.Action = Arm.create('Action', {
+    module: Mo,
+    // module: 'Mo',
+    printInstance: function() {
+        console.log(this.__instance__);
+    }
+});
+Mo.Class = Arm.create('Class', {
+    //action: Mo.Action,
+    action: 'Mo.Action',
+    options: {
+        name: 'abc'
+    },
+    setName: function(name) {
+        this.name = name;
+    },
+    getName: function() {
+        return this.name
+    }
+});
+var moClass = Mo.Action.getInstance('Mo.Class');
+Mo.View = Arm.create('View', {
+    //action: Mo.Action,
+    action: 'Mo.Action',
+    properties: {
+        name: 'my test',
+        CONST: {
+            REQUEST_URL: 'http://hello.com'
+        },
+        ENUM: {
+            '1': 'red',
+            '2': 'green',
+            '3': 'blue'
+        }
+    },
+    options: {
+        element: null,
+        $container: null,
+        listSelector: '.list',
+        itemSelector: '.item'
+    },
+    bindEvent: function() {
+        var self = this;
+        var c = self.getAction().getClass();
+        c.setName('Tom');
+        // bind one custom event
+        self.getContainer().on('showName', self.showName);
+        /* use dalegate
+        self.click('.btn', function() {
+            self.run();
+            // prevent event
+            return false;
+        });
+        */
+        self.find('.btn').on('click', function(evt) {
+            // Mo.Action.getView() === self;
+            Mo.Action.getView().run();
+            evt.stopPropagation();
+        });
+    },
+    triggerClick: function() {
+        this.trigger('mouseover');
+    },
+    showName: function(evt, self) {
+        self = self || this;
+        console.log('showName:', arguments);
+        var $items = self.find(self.options.itemSelector);
+        alert('view.showName():' + $($items[0]).find('em').text() );
+    },
+    setName: function(name) {
+        console.log('view.setName:', arguments);
+        var $items = this.find(this.options.itemSelector);
+        $($items[0]).find('em').html(name);
+    },
+    run: function() {
+        alert('view.run()' + this);
+        this.trigger('mouseout');
+        // this name is `Tom`
+        this.setName(this.action.getClass().getName());
+        this.trigger('showName', [this, 1, 2, 3]);
+    }
+});
+// instance
+var view = Mo.Action.get('View',
+    // pass options for instance
+    {
+        $container: $('#Container')
+    }
+);
+// test events
+view.click(function(evt) {
+    //console.log(this, evt);
+    alert(this.innerHTML);
+    this.style.backgroundColor = 'gray';
+}).mouseover(function(evt) {
+    this.style.backgroundColor = 'purple';
+}).mouseout(function(evt) {
+    //console.log(this, evt);
+    this.style.backgroundColor = '';
+});
+view.mouseover('.item', function(evt) {
+    //console.log(this, evt);
+    this.style.backgroundColor = 'green';
+}).mouseout('.item', function(evt) {
+    //console.log(this, evt);
+    this.style.backgroundColor = '';
+}).click('.item', function(evt) {
+    alert(this.innerHTML);
+    evt.preventDefault();
+    evt.stopPropagation();
+    // return false;
+});
+
+var moClass = Mo.Action.getClass();
+
+/* submodule and inherits */
+Mo.Sub.Class = Arm.create('Class', {
+    action: Mo.Action,
+    getName: function() {
+        return 'sub.class' + '|' + this.options.name + '|' + this.name;
+    }
+}).inherits(Mo.Class);
+
+/*
+var subClass = Mo.Action.getClass('Sub', {
+    name: 'john'
+});
+*/
+// instance
+var subClass = Mo.Action.getClass('Sub', {
+    name: 'john'
+});
+Mo.Sub.View = Arm.create('View', {
+    action: Mo.Action,
+    properties: {
+        name: 'sub.view',
+        //'class': moClass,
+        'class': subClass
+    },
+    options: {
+        $container: null
+    },
+    run: function() {
+        alert('subView.run()');
+        //this.__super__.run();
+    }
+}).inherits(Mo.View).extend({
+    hello: function() {
+        console.log('hello');
+        return 'hi';
+    }
+});
+
+module( "sub inherits test:" );
+
+test( "sub class inherits test", function() {
+    // this.name未赋值，属性不继承
+    ok(subClass.getName() == 'sub.class|john|undefined', "测试subClass.getName inherits test." );
+    // 调用父类的setName方法更改子类的属性
+    subClass.setName('max');
+    // 重新属性
+    equal(subClass.name, 'max', "测试subClass.name inherits test." );
+    // name有值了
+    equal(subClass.getName(), 'sub.class|john|max', "测试subClass.getName2 inherits test." );
+});
+
+var subView = Mo.Action.getInstance('Mo.Sub.View', {
+        $container: $('#Container')
+    }
+);
+/*
+var subView = Mo.Action.getView('Sub', {
+        $container: $('#Container')
+    }
+);*/
+test( "sub view inherits test", function() {
+    equal(subView.options.element.style.backgroundColor, 'blue', "测试subView.options.element inherits test.");
+    equal(typeof subView.showName, 'function', "测试typeof subView.showName inherits test.");
+    // 子view的class被定义过，故取到的是Mo.Sub.Class，而非Mo.Class
+    subClass.setName('marry');
+    // name 被改变过
+    // console.log(subClass, subClass.name);
+    equal(subView.getClass().name, 'marry', "测试sub view inherits test.");
+    // 调用父类的getName， 打印子类options.naem 以及 properties.name
+    equal(subView.getClass().getName(), 'sub.class|john|marry', "测试sub view inherits test.");
+    // 来自于继承
+    equal(subView.hello(), 'hi', "测试sub view inherits test.");
+});
+
+</script>
+<button onclick="subView.run()">subView.run</button>
+ </body>
+</html>

@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title> Bind Test </title>
+  <meta charset="utf-8">
+  <meta name="Author" content="">
+  <meta name="Keywords" content="">
+  <meta name="Description" content="">
+  <script charset="utf-8" type="text/javascript" src="/qui/test/lib/qunit-1.14.0.js"></script>
+  <link charset="utf-8" rel="stylesheet" href="/qui/test/lib/qunit-1.14.0.css">
+  <script charset="utf-8" type="text/javascript" src="/qui/js-src/ui.js"></script>
+  <script charset="utf-8" type="text/javascript" src="/qui/js-src/lib/arm.js"></script>
+ </head>
+
+ <body>
+
+<div id="qunit"></div>
+<div id="qunit-fixture"></div>
+<div id="AOPTest" style="background-color:green" data-before="false" data-after="false">aop</div>
+<script>
+console.log(Arm);
+// 测试数据不要随便改动
+var items = [
+  { id: 1001, type: 1, name: "Edward", value: 21, age: 23 },
+  { id: 1002, type: 2, name: "Sharpe"},
+  { id: 1003, type: 3, name: "And", value: 4, age: 16},
+  { id: 1004, type: 4, name: "The", value:null, age: 14 },
+  { id: 1005, type: 5, name: "Magnetic", age: 45 },
+  { id: 1006, type: 6, name: "Zeros", value: 37, age: 4 },
+  { id: 1007, type: 7, name: "Jarry", value: 4, age: 16}
+];
+
+var Foo = {
+    name: 'Foo',
+    sex: 'male',
+    age: 30
+};
+
+var list = Arm.create('ArrayList', items);
+var Mo = Arm.create('Module', {
+    name: 'Mo'
+});
+Mo.Action = Arm.create('Action', {
+    module: 'Mo'
+});
+Mo.Class = Arm.create('Class', {
+    action: Mo.Action,
+    properties: {
+        name: 'Arm',
+        age: 101
+    },
+    options: {
+        
+    },
+    age: 200,
+    setAge: function(age) {
+        this.age = age;
+    },
+    getAge: function() {
+        return this.age;
+    },
+    setName: function(name) {
+        this.name = name;
+    },
+    getName: function() {
+        return this.name;
+    },
+    // 用于bind, curry测试
+    addAge: function(a, b, c) {
+        console.log(this, this.age);
+        var age = (this.age || 0) + (a || 0) + (b || 0) + (c || 0);
+        console.log('addAge:', arguments, age);
+        return age;
+    },
+    // 用于curry测试
+    callMe: function(param, fn) {
+        console.log('callFun:', arguments);
+        return fn(param);
+    },
+    // 用于AOP测试
+    aopTest: function(p) {
+        var $ele = $('#AOPTest');
+        console.log('aopTest:', arguments);
+        // 如果前置条件执行了则会执行改变，这里用data-before来表示
+        if ( $('#AOPTest').data('before') == 'true' ) {
+            $ele.html(p + '| AOP Test success.');
+            $ele[0].style.backgroundColor = 'red';
+            return true;
+        }
+        return false;
+    },
+    printAll: function() {
+        console.log(arguments);
+    }
+});
+
+module( "group Function bind test" );
+test( "Function bind test", function() {
+    var clazz = Mo.Action.getClass();
+    // 函数bind旨在改变函数运行时的对象
+    // bind了对象Foo，改变了this
+    var bindGetName = clazz.getName.bind(Foo);
+    deepEqual(clazz.getName(), 'Arm', "测试 function bind. result: Arm");
+    equal(bindGetName(), 'Foo', "测试 function bind. result: Foo");
+    equal(clazz.getAge(), 101, "测试 function bind. result: 101");
+    equal(clazz.getAge.bind(Foo)(), 30, "测试 function bind. result: 30");
+    // bind之后针对Foo的age进行addAge操作
+    var addAge = clazz.addAge.bind(Foo);
+    equal(addAge(1, 2, 3), 36, "测试 function bind. result: 36");
+    equal(addAge(3, 4, 5), 42, "测试 function bind. result: 42");
+});
+module( "group Arm._ curry test" );
+test( "Function curry test", function() {
+    var clazz = Mo.Action.getClass();
+    var add = function(a, b) {
+        return a - b;
+    };
+    // 函数科里化测试，curry函数add, 且传入参数12
+    var curry = Arm._.curry(add, 12);
+    var result = curry(2);
+    // result = 12 - 2
+    equal(result, 10, "测试curry test. result: 10");
+});
+test( "Function curry test", function() {
+    equal(Arm._.curry(Mo.Action.getClass().addAge, 3)(3, 3), 9,
+    "测试curry test. result: 9");
+    // 获得一个新的instance
+    var clazz = Mo.Action.getClass('', {}, true);
+    // curry传入参数
+    var curry = clazz.addAge.curry(1, 2);
+    var result = curry(4);
+    console.log(curry, typeof result, result);
+    equal(result, 7, "测试curry test. result: 7");
+    // 对象函数科里化直接执行
+    equal(Mo.Action.getClass().addAge.curry(4, 4)(4), 12,
+    "测试curry test. result: 12");
+});
+
+test( "Function curry test(set scope)", function() {
+    // 也可以指定curry函数的scope，那样函数的this指针将指向scope, 默认是window
+    var c = Mo.Action.getClass('', {}, true);
+    // 指定curry函数的scope
+    c.addAge.scope = c;
+    var curry = c.addAge.curry(1, 2);
+    var result = curry(4);
+    console.log(curry, typeof result, result);
+    // 101(对象age) + (1 + 2)(curry时传参) + 4(调用时传参)
+    equal(result, 108, "测试curry test. result: 108");
+    // 
+    equal(Mo.Action.getClass().addAge.curry(4, 4)(4), 113,
+    "测试curry test. result: 113");
+});
+module( "group Function curry test" );
+test( "Function curry function test(set scope)", function() {
+    // 也可以指定curry函数的scope，那样函数的this指针将指向scope, 默认是window
+    var c = Mo.Action.getClass('', {}, true);
+    // 指定curry函数的scope
+    c.callMe.scope = c;
+    
+    // 先声明函数
+    var func1 = function(param) {
+        if (param >= 0) {
+            return param += 5;
+        }
+        return param += ' Good Morning!';
+    };
+    var func2 = function(param) {
+        return !isNaN(param) ? param + 10 : 'Hello: ' + param;
+    };
+    // currying传参声明新函数
+    var curryString = c.callMe.curry('Hello World!');
+    // 调用时传入函数，根据第一个param做处理
+    var info1 = curryString(func1);
+    var number1 = curryString(func2);
+    equal(info1, 'Hello World! Good Morning!', "测试curry function test. result: Hello World! Good Morning!");
+    equal(number1, 'Hello: Hello World!', "测试curry function test. result: Hello: Hello World!");
+
+    // 换一个函数声明
+    var curryNumber = c.callMe.curry(8);
+    var info2 = curryNumber(func1);
+    var number2 = curryNumber(func2);
+    equal(info2, 13, "测试curry function test. result: 13");
+    equal(number2, 18, "测试curry function test. result: 18");
+
+    // 换一个函数声明
+    var func3 = function(param) {
+        return function(data) {
+            return !isNaN(param) ? param + 10 + data : 20 + data;
+        }
+    };
+    var curryFoo = c.callMe.curry(9);
+    var info3 = curryFoo(func3)(1);
+    var number3 = curryFoo(func3)(2);
+    equal(info3, 20, "测试curry function test. result: 20");
+    equal(number3, 21, "测试curry function test. result: 21");
+
+});
+module( "group Function AOP test" );
+test( "Function AOP test", function() {
+    var c = Mo.Action.getClass('', {}, true);
+    /**
+     * 类里面某个函数需要使用AOP，这样可以让改函数调用时更加清晰可读。本测试用例旨在说明AOP的用法：
+     * - 新建一个类，里面所有的方法都会有before,after方法
+     * - 改函数需要在执行时前置一些条件或后置一个行为
+     * - AOP方法不需要return，主要用于执行方法
+     * - before,after都会执行原来的函数，可以考虑把before集中起来链式调用，以便本函数仅执行一次
+     */
+
+     // 需要前置的函数
+    function before(p) {
+        // 如果参数为true则更改data为true
+        if (p == true) {
+            $('#AOPTest').data('before', 'true');
+        }
+    }
+    // 需要后置的函数
+    function after(p) {
+        var $ele = $('#AOPTest');
+        // 如果参数非为true则且其他条件满足则执行后置行为
+        if (p !== undefined && p == true) {
+            if ($ele[0].style.backgroundColor != 'red') {
+                $ele.data('after', 'true');
+                $ele[0].style.backgroundColor = 'blue';
+            }
+        }
+        $ele.html(p + ':after test succes.');
+    }
+    console.log('Function AOP test:');
+    // aopTest函数bind before函数(before),并立即执行, true参数会传递给before以及aopTest函数
+    //c.aopTest.before(before)(true);
+    // before函数会在aopTest执行前执行，会把data-before改为true
+    // c.aopTest(); // 直接调用
+    //c.aopTest.after(after).before(c.addAge)('after param');
+
+    c.aopTest.before(before).after(after)(true);
+
+    // 请通过控制台查看结果
+    console.log("$('#AOPTest').data():", $('#AOPTest').data());
+    equal(1, 1, "测试curry function AOP. result: AOP");
+
+    /* around 实际意义不大，暂不提供
+    function around(p) {
+        $('#AOPTest').html('around' + p);
+    }*/
+    // c.aopTest.around(around)('c');
+});
+</script>
+ </body>
+</html>

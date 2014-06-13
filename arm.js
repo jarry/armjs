@@ -1407,18 +1407,18 @@
          * @function
          * @param {string} [name] object's name as view instance or 'X.View'
          * @param {object} [options] params of run method
-         * @param {object} [secondOptions] params of instance
+         * @param {object} [instanceOption] params of instance
          * @usage
          *     Module.Action.run(instance, {run options})
          *     Module.Action.run('Sub.View', {instance options}, {run options})
          *     Module.Action.run({run options}), call default View's run
          */
-        run: function(name, options, secondOptions) {
+        run: function(name, options, instanceOption) {
             var self = this;
             if (name instanceof Arm.View) {
                 return name.run(options);
             } else if ('string' == typeof name) {
-                return self.getView(name, options).run(secondOptions);
+                return self.getView(name, options).run(instanceOption);
             }
             return self.getView().run(name);
         }
@@ -1730,14 +1730,6 @@
             }
             return View;
         },
-
-        _runAction: function (action, view, options) {
-            if (view instanceof Arm.View) {
-                view.run(options);
-            } else {
-                action.run(view, options);
-            }
-        },
         /**
          * create object
          * Model, ArrayList, HashMap,
@@ -1765,19 +1757,13 @@
             }
             return Obj;
         },
-        run: function (action, view, options) {
+        // see Action.run
+        run: function (action, view, options, instanceOption) {
             if ('string' == typeof action) {
                 action = _.accessProperty(root, action);
             }
-            if ('string' == typeof view && action) {
-                view = action.getView(view);
-            }
-            if ('function' == typeof $) {
-                $(function () {
-                    return _Arm._runAction(action, view, options);
-                });
-            } else {
-                return _Arm._runAction(action, view, options);
+            if (action instanceof Arm.Action) {
+                action.run(view, options, instanceOption);
             }
         }
     };

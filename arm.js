@@ -89,7 +89,6 @@
     var _forEach = arrPro.forEach,
         _map = arrPro.map,
         _reduce = arrPro.reduce,
-        _reduceRight = arrPro.reduceRight,
         _filter = arrPro.filter,
         _every = arrPro.every,
         _some = arrPro.some,
@@ -1099,16 +1098,14 @@
     // ArrayList: model's collection
     ArrayList = function ArrayList(models) {
         this.empty();
-        this.length = 0;
         if (models !== undefined && models !== null) {
             models = _.isArrayOrList(models) ? models : [models];
-            this.__model__ = _.deepClone(models[0]);
+            this.add(models);
         }
-        this.add(models);
+        this.push();
     };
     ArrayList.prototype = {
         constructor: ArrayList,
-        __model__: null,
         valueOf: function() {
             return slice.call(this);
         },
@@ -1136,6 +1133,9 @@
             return new ArrayList( _.getByValue(this, value) );
         },
         validModel: function(item) {
+            if (this.__model__ === null) {
+                return true;
+            }
             for (var prop in this.__model__) {
                 if (!item.hasOwnProperty(prop)) {
                     return false;
@@ -1149,6 +1149,7 @@
             }
             var model,
                 list = _.isArrayOrList(item) ? item : [item];
+            ArrayList.prototype.__model__ = _.deepClone(list[0]);
             var i = 0, l = list.length;
             for (; i < l; i++) {
                 model = list[i];
@@ -1284,7 +1285,7 @@
 
     _.each(['shift', 'push', 'sort', 'pop', 'reverse', 'join',
         'splice', 'concat', 'slice', 'forEach', 'map', 'some', 'every',
-        'filter', 'reduce', '_reduceRight'], function(method) {
+        'filter', 'reduce', 'reduceRight'], function(method) {
             ArrayList.prototype[method] = arrPro[method];
         }
     );
@@ -1585,7 +1586,8 @@
                 this.action = action;
                 this.view   = view;
                 this.options = _.deepClone(data.options) || {};
-                _.extend(true, this.options, options);
+                _.extend(this.options, options);
+                // _.extend(true, this.options, options); // deep extend
                 this.construct = data.construct || data.init || function () {};
                 this.construct.call(this);
             }
@@ -1634,7 +1636,7 @@
                 this.action = action;
                 this['class'] = clazz;
                 this.options = _.deepClone(data.options) || {};
-                _.extend(true, this.options, options);
+                _.extend(this.options, options);
                 // validate element or $container
                 if (!this.options.element && this.options.$container) {
                     this.options.element = this.options.$container[0];
@@ -1665,9 +1667,14 @@
                 },
                 render: function (ele, tmplElement, data, process) {
                     ele = ele || this.getElement();
-                    var content = _.isObjectOrMap(data) ? _.tmpl(tmplElement, data) : data;
+                    data = data instanceof Arm.ArrayList ? data.slice(0) : data;
+                    var content = 'object' == typeof data ? _.tmpl(tmplElement, data) : data;
                     process = process || function (content, ele, tmplElement, data) {
-                        ele.innerHTML = content;
+                        if (typeof $ == 'function') {
+                            $(ele).html(content);
+                        } else {
+                            ele.innerHTML = content;
+                        }
                         return content;
                     };
                     return process.call(this, content, ele, tmplElement, data);

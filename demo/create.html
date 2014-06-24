@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title> Create Demo </title>
+  <meta name="Author" content="">
+  <meta name="Keywords" content="">
+  <meta name="Description" content="">
+<!--
+  <script type="text/javascript" src="http://tangram.baidu.com/bcs/fastdownload/2.0.2.5/tangram.js"></script>
+  <script type="text/javascript" src="http://underscorejs.org/underscore.js"></script>
+  <script type="text/javascript" src="http://backbonejs.org/backbone.js"></script>
+  <script type="text/javascript" src="http://code.jquery.com/jquery-1.11.0.js"></script>
+-->
+<script type="text/javascript" src="core.js"></script>
+
+</head>
+<h1>Arm基本创建说明</h1>
+<h2>本例旨在说明Arm包含哪些内容，以及该如何通过Arm创建项目。</h2>
+<pre>
+本例子是对表格内容的增删操作。
+- 点击获得该行的数据
+- 点击表头可以排序
+</pre>
+<style>
+.Container-Example {
+    background-color: #f1f1f1;
+}
+.Container-Example .table {
+    width: 98%;
+    margin: 10px;
+}
+.Container-Example .table tr {
+    text-align: center;
+}
+.Container-Example .table tr:nth-child(even) {
+    background-color: rgb(235, 235, 205);
+}
+.Container-Example .table tbody tr:hover {
+    background-color: rgb(213, 213, 255);
+}
+</style>
+<div class="Container-Example">
+    <table class="table">
+        <thead>
+            <tr><th class="thead-id">No</th><th class="thead-name">Name↑</th><th class="thead-value">Value↓</th></tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+    <!--
+    <button class="btn btn-update">update</button>
+    -->
+    <button class="btn btn-all">get all</button>
+</div>
+<a href="#" onclick="window.open('view-source:' + window.location.href)" target="_blank">view source</a>
+<body>
+
+<script>
+// original data
+var items = [
+  { id: 1001, name: "Yan", value: 21 },
+  { id: 1002, name: "Liu" },
+  { id: 1003, name: "Xu", value: 4 },
+  { id: 1005, name: "Huang", value: null },
+  { id: 1006, name: "Li"},
+  { id: 1004, name: "Wang", value: 37 },
+  { id: 1008, name: "", value: 100 },
+  { id: 1010, name: null, value: 101 }
+];
+var list = new Arm.Collection(items);
+// var list = Arm.create('ArrayList', items);
+
+// create module
+var Module = Arm.create('Module', {
+    name: 'Module'
+});
+// create action
+Module.Action = Arm.create('Action', {
+    module: 'Module'
+});
+// create class
+Module.Class = Arm.create('Class', {
+    action: Module.Action,
+    properties: {
+        // 属性
+        rowsData: null
+    },
+    options: {
+        // 选项属性
+        rowsData: null
+    },
+    getProcessData: function() {
+        this.rowsData = new Arm.ArrayList(this.options.rowsData);
+        console.log('getProcessData:', items, this.rowsData, this.options.rowsData);
+        this.rowsData.format({
+                'name': null,
+                'value': function(value, obj) {
+                    return value || 'none'
+                }
+            }, function(value, obj) {
+            return value || '无';
+        });
+        return this.rowsData;
+    },
+    sortRowsData: function(field, order) {
+        return this.rowsData.sortBy(field, order);
+    },
+    getRowsData: function() {
+        return this.rowsData;
+    }
+});
+// create view
+Module.View = Arm.create('View', {
+    action: Module.Action,
+    properties: {
+        MESSAGE: {
+            prefixAlert: '本条数据：'
+        },
+        class: null
+    },
+    options: {
+        element: null,
+        templateSelector: '#TemplateRow',
+        btnUpdateSelector: '.btn-update',
+        btnAllSelector: '.btn-all',
+    },
+    init: function() {
+        // items is global scope variable
+        var list = Arm.create('ArrayList', items);
+        this.class = this.class || this.getAction().getClass({
+            rowsData: items
+        });
+        this.bindEvent();
+    },
+    bindEvent: function() {
+        var self = this;
+        this.click('table tr', function() {
+            console.log(this);
+            alert($(this).text());
+        });
+        this.click('.btn-all', function(evt) {
+            alert('data\'s number:' + self.class.getRowsData().size());
+            console.log(this, self.class.getRowsData());
+        });
+        this.click('table thead .thead-value', function() {
+            self.renderTable(self.class.sortRowsData('value', 'desc'));
+            return false;
+        });
+        this.click('table thead .thead-name', function(evt) {
+            self.renderTable(self.class.sortRowsData('name', 'asc'));
+            evt.preventDefault();
+            evt.stopPropagation();
+        });
+    },
+    renderTable: function(data) {
+        var data = data || this.class.getProcessData();
+        var $tbody = this.find('table').find('tbody');
+        var $template = $(this.options.templateSelector);
+        this.render($tbody[0], $template[0], data);
+    },
+    triggerRun: function() {
+        
+    },
+    run: function() {
+        this.renderTable();
+        this.triggerRun();
+    }
+});
+</script>
+<script type="text/x-jquery-tmpl" id="TemplateRow">
+<tr><td class="id">${id}</td><td class="name">${name}</td><td class="value">${value}</td></tr>
+</script>
+
+<script>
+// run begining
+$(function() {
+    Module.Action.run('', {
+        $container: $('.Container-Example')
+    });
+});
+</script>
+ </body>
+</html>

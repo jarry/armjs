@@ -1115,16 +1115,17 @@
         get: function(index) {
             return this[index];
         },
-        getById: function(id) {
-            if (!this[id]) {
-                return;
-            }
+        getBy: function(attr, value) {
+            var result = [];
             for (var i = 0, l = this.length; i < l; i++) {
-                if (id == this[i].id) {
-                    return this.get(i);
+                if (value == this[i][attr]) {
+                    result.push(this.get(i));
                 }
             }
-            return id;
+            return result;
+        },
+        getById: function(id) {
+            return this.getBy('id', id)[0];
         },
         getByAttribute: function(key) {
             return new ArrayList( _.getByAttribute(this, key) );
@@ -1210,6 +1211,10 @@
         lastIndexOf: function(item, from, comparer) {
             return _.lastIndexOf(this, item, from, comparer);
         },
+        each: arrPro.forEach || function(iterator, scope) {
+            _.each(this, iterator, scope);
+            return this;
+        },
         remove: function(start, end) {
             end = end || start + 1;
             if (end > 0 && start <= this.size()) {
@@ -1220,6 +1225,21 @@
         removeItem: function(item) {
             var index = this.indexOf(item);
             return this.remove(index);
+        },
+        removeBy: function(attr, value) {
+            var self = this;
+            var i = 0, l = this.length, model;
+            while (l > i) {
+                l--;
+                model = this[l];
+                if (model[attr] !== undefined && model[attr] === value) {
+                    self.remove(l);
+                }
+            }
+            return this;
+        },
+        removeById: function(id) {
+            return this.removeBy('id', id);
         },
         clear: function() {
             this.empty();
@@ -1316,6 +1336,9 @@
         getInstance: function() {
             return this.get.apply(this, arguments);
         },
+        'new': function() {
+            return this.get.apply(this, arguments);
+        },
         getClass: function(name, options, isNew, type) {
             if ('object' == typeof name && name !== null) {
                 options = name;
@@ -1345,6 +1368,7 @@
         getConfig: function(name, options, isNew) {
             return this.getClass(name, options, isNew, 'Config');
         },
+        // TODO: support AView, BClass, XUtil, NConfig
         /**
          * Get instance from Class,View or the static object such as Util, Config, Dao
          * @function
@@ -1469,7 +1493,7 @@
     Arm.Class.prototype = {
         constructor: Arm.Class,
         update: function(options, properties) {
-            _.extend(true, this.options, options);
+            _.extend(this.options, options);
             return this;
         },
         extend: function(methods) {
@@ -1685,10 +1709,13 @@
                 getContainer: function () {
                     return this.options.$container;
                 },
-                trigger: function (event, data, elem, onlyHandlers) {
+                on: function() {
+                    this.getContainer().on.apply(this.getContainer(), arguments);
+                },
+                trigger: function (event, data, ele, onlyHandlers) {
                     var $container = this.getContainer();
                     if ($container && $container.trigger) {
-                        this.options.$container.trigger(event, data, elem, onlyHandlers);
+                        $container.trigger(event, data, ele, onlyHandlers);
                     }
                     return this;
                 },
@@ -1703,13 +1730,13 @@
             ];
             _.each(events, function (name) {
                 View.prototype[name] = function (selector, fn) {
-                    var $container = this.options.$container;
+                    var $container = this.getContainer();
                     if ($container && $container.on) {
                         // require events listen lib such as jQuery
                         if ('function' == typeof selector) {
-                            $container.on(name, selector);
+                            this.on(name, selector);
                         } else {
-                            $container.on(name, selector, fn);
+                            this.on(name, selector, fn);
                         }
                     }
                     return this;

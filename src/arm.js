@@ -14,7 +14,7 @@
  *          <li>run action</li>
  *          </ol>
  * @reference: underscore, jQuery, backbone, emberjs, angularjs
- * @author: jarryli@gmail.com
+ * @author: lichunping(jarryli@gmail.com)
  * @version: 0.1.0
  * @date:   2014-03-09
  */
@@ -904,6 +904,27 @@
             }
             return obj;
         },
+        addModuleForName: function(name, moduleName) {
+            if (name === '' || name === moduleName || !moduleName) {
+                return name;
+            }
+            var module = '',
+                hasModuleName = true,
+                dotIdx = name.indexOf('.');
+            if (dotIdx < 0) {
+                hasModuleName = false;
+            } else {
+                module = name.substr(0, dotIdx);
+                if (module !== moduleName) {
+                    hasModuleName = false;
+                }
+            }
+            // if the name string has not Module's name
+            if (!hasModuleName) {
+                return moduleName + '.' + name;
+            }
+            return name;
+        },
         getModuleInfoByName: function(name) {
             name = name || '';
             var segements = name.split('.');
@@ -1348,13 +1369,24 @@
             type = type || 'Class';
             var module = this.module || {};
             name = name || module.name || '';
-            var len  = name.length;
-            var nameType = name.substr(len - type.length, len);
+            var len  = name.length,
+                typeLen = type.length;
+            // remove the type while name contains type.
+            if ( name.substr(len - typeLen - 1) === ('.' + type) ) {
+                name = name.substr(0, len - (typeLen + 1));
+            }
+
+            var nameType = name.substr(len - type.length);
             var moduleInfo = {
                 type: type,
                 fullName: (nameType == type) ? name : name + '.' + type
             };
-            return this.get((name + '.' + type), options, isNew, moduleInfo);
+            // add type for name
+            if (name.substr(len - typeLen) !== type) {
+                name = (name + '.' + type);
+            }
+
+            return this.get( name, options, isNew, moduleInfo );
         },
         getView: function(name, options, isNew) {
             return this.getClass(name, options, isNew, 'View');
@@ -1368,14 +1400,15 @@
         getConfig: function(name, options, isNew) {
             return this.getClass(name, options, isNew, 'Config');
         },
-        // TODO: support AView, BClass, XUtil, NConfig
+
         /**
          * Get instance from Class,View or the static object such as Util, Config, Dao
          * @function
          * @param {string} name, object's name as 'Module', 'Module.X.Class'
+         * support Module.XView, Module.BClass, Module.XUtil, Module.NConfig
          * @param {object} [options], params of Class
          * @param {boolean} [isNew], create new instance
-         * @param {object} [moduleInfo], module info from name
+         * @param {object} [moduleInfo], module info from name for `getClass`
          * @returns {object} insance or static object
          */
         get: function(name, options, isNew, moduleInfo) {
@@ -1383,15 +1416,21 @@
                 return;
             }
             var self = this;
-            moduleInfo = moduleInfo || _util.getModuleInfoByName(name);
+            var obj, module = self.module;
+            // add the suffix that module's name to name param.
+            name = _util.addModuleForName(name, module.name);
+            // get moduleinfo from name param
+            moduleInfo = moduleInfo || _util.getModuleInfoByName(name, module.name);
+
             var type = moduleInfo.type;
             var fullName = moduleInfo.fullName;
-            var obj, module = self.module;
+
             // autocomplete module.name, both 'Module.Class' and 'Class' are available.
             fullName = (fullName.substr(0, module.name.length) != module.name) ?
                 (module.name + '.' + fullName) : fullName;
+
             obj = _.accessProperty(root, fullName);
-            // logger.log('Action.get:', arguments, fullName, obj);
+            logger.log('Action.get:', arguments, fullName, obj, type);
             var _getInstance = function(Clazz, options, isNew, fullName) {
                 if (typeof Clazz != 'function' || typeof fullName != 'string') {
                     logger.log('[error]:getInstance:', 'Clazz is underfed or fullName is undefined.');
@@ -1414,6 +1453,15 @@
                 cache[fullName] = instance;
                 return instance;
             };
+
+            // set XClass to Class for type, support `Module.XClass`,`Module.Sub.XView`.
+            var types = ['Class', 'View'];
+            _.each(types, function(item) {
+                if (type.substr(type.length - item.length) === item) {
+                    type = item;
+                    return;
+                }
+            });
 
             switch(type) {
             case 'Class':

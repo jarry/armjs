@@ -742,7 +742,7 @@
                     data += (item + '=' + value + '&');
                 }
                 if (data.length > 0 && data[data.length - 1] == '&') {
-                    data = data.substr(0, data.length - 1);
+                    data = data.substring(0, data.length - 1);
                 }
             }
             data = data || options.data;
@@ -904,6 +904,16 @@
             }
             return obj;
         },
+        getModuleByName: function(name) {
+            if ('string' == typeof name) {
+                var idx = name.indexOf('.');
+                if (idx > 0) {
+                    return _util.getObject(name.substring(0, idx));
+                }
+                return _util.getObject(name);
+            }
+            return name;
+        },
         addModuleForName: function(name, moduleName) {
             if (name === '' || name === moduleName || !moduleName) {
                 return name;
@@ -914,7 +924,7 @@
             if (dotIdx < 0) {
                 hasModuleName = false;
             } else {
-                module = name.substr(0, dotIdx);
+                module = name.substring(0, dotIdx);
                 if (module !== moduleName) {
                     hasModuleName = false;
                 }
@@ -932,7 +942,7 @@
             return {
                 moduleName: segements[0],
                 type: segements[segements.length - 1],
-                subModuleName: name.substr(0, lastDotIdx),
+                subModuleName: name.substring(0, lastDotIdx),
                 fullName: name
             };
         }
@@ -1337,16 +1347,20 @@
         _.extend(this, data);
     };
     Module.prototype = {
-        constructor: Module
+        constructor: Module,
+        getAction: function() {
+            return _util.getObject(this.name + '.Action');
+        },
+        getDao: function() {
+            return _util.getObject(this.name + '.Dao');
+        }
     };
 
     // Action: control object and declare instance for module
     Action = function Action(data, config) {
         config = config || {};
         _.extend(this, data);
-        if ('string' == typeof this.module && this.module.length > 0) {
-            this.module = _.accessProperty(root, this.module);
-        }
+        this.module = _util.getModuleByName(data.name);
         this.__instance__ = {};
     };
     Action.prototype = {
@@ -1373,7 +1387,7 @@
                 typeLen = type.length;
             // remove the type while name contains type.
             if ( name.substr(len - typeLen - 1) === ('.' + type) ) {
-                name = name.substr(0, len - (typeLen + 1));
+                name = name.substring(0, len - (typeLen + 1));
             }
 
             var nameType = name.substr(len - type.length);
@@ -1426,7 +1440,7 @@
             var fullName = moduleInfo.fullName;
 
             // autocomplete module.name, both 'Module.Class' and 'Class' are available.
-            fullName = (fullName.substr(0, module.name.length) != module.name) ?
+            fullName = (fullName.substring(0, module.name.length) != module.name) ?
                 (module.name + '.' + fullName) : fullName;
 
             obj = _.accessProperty(root, fullName);
@@ -1500,12 +1514,15 @@
     // Util: static method collection, resolve common problem for `View` or `Class`.
     Util = function Util(data) {
         _.extend(this, data);
-        this.action = _util.getObject(this.action);
+        this.module = _util.getModuleByName(data.name);
+        if (this.module) {
+            this.action = this.module.getAction();
+        }
     };
     Util.prototype = {
         constructor: Util,
         getAction: function() {
-            return this.action;
+            return this.module.getAction();
         }
     };
     // _.inherits(Util, HashMap);
@@ -1513,7 +1530,10 @@
    // basic data object: module config, key-value(literals) object
     Config = function Config(data) {
         _.extend(this, data);
-        this.action = _util.getObject(this.action);
+        this.module = _util.getModuleByName(data.name);
+        if (this.module) {
+            this.action = this.module.getAction();
+        }
     };
     Config.prototype = {
         constructor: Config,
@@ -1526,7 +1546,10 @@
     // Dao: front-end data interact with server by ajax or socket etc.
     Dao = function Dao(data) {
         _.extend(this, data);
-        this.action = _util.getObject(this.action);
+        this.module = _util.getModuleByName(data.module);
+        if (this.module) {
+            this.action = this.module.getAction();
+        }
     };
     Dao.prototype = {
         constructor: Dao,
@@ -1619,10 +1642,8 @@
         },
         _createAction: function (data, config) {
             data = data || {};
-            if ('string' == typeof data.module) {
-                data.module = _.accessProperty(root, data.module);
-            }
-            if ('object' != typeof data.module) {
+            data.module = _util.getModuleByName(data.name);
+            if (!data.module instanceof Module) {
                 logger.warn('createAction:', data, ' not defined module for `Action`.');
             }
             var instance = new Action(data, config);
@@ -1646,16 +1667,18 @@
         _createClass: function (data, config) {
             data = data || {};
             var properties = data.properties || {};
-            var action = data.action || properties.action;
+            data.module = _util.getModuleByName(data.name);
             var view = data.view || properties.view;
-            action = _util.getObject(action);
-            if (!action instanceof Arm.Action) {
-                logger.warn('createClass:', data, ' not defined action for `Class`.');
+            if (!data.module instanceof Module) {
+                logger.warn('createClass:', data, ' not defined module for `Class`.');
             }
             function Class(options) {
                 options = options || {};
                 _.extend(this, properties);
-                this.action = action;
+                this.module = data.module;
+                if (this.module) {
+                    this.action = this.module.getAction();
+                }
                 this.view   = view;
                 this.options = _.deepClone(data.options) || {};
                 _.extend(this.options, options);
@@ -1696,16 +1719,18 @@
             data = data || {};
             var events;
             var properties = data.properties || {};
-            var action = data.action || properties.action;
+            data.module = _util.getModuleByName(data.name);
             var clazz = data['class'] || properties['class'];
-            action = _util.getObject(action);
-            if (!action instanceof Arm.Action) {
-                logger.warn('createView:', data, ' not defined action for `View`.');
+            if (!data.module instanceof Module) {
+                logger.warn('_createView:', data, ' not defined module for `View`.');
             }
             function View(options) {
                 options = options || {};
                 _.extend(this, properties);
-                this.action = action;
+                this.module = data.module;
+                if (this.module) {
+                    this.action = this.module.getAction();
+                }
                 this['class'] = clazz;
                 this.options = _.deepClone(data.options) || {};
                 _.extend(this.options, options);

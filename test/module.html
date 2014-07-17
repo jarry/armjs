@@ -35,16 +35,22 @@ var ModuleTest = Arm.create('Module', {
     version: '1.0.1',
     SubModule: {}
 });
+ModuleTest.Action = Arm.create('Action', {
+    name: 'ModuleTest.Action'
+});
 ModuleTest.Config = Arm.create('Config', {
+    name: 'ModuleTest.Config',
     size: 10,
     MESSAGE: {
         error: 'error'
     }
 });
 ModuleTest.SubModule.Config = Arm.create('Config', {
+    name: 'ModuleTest.SubModule.Config',
     size: 10
 });
 ModuleTest.Util = Arm.create('Util', {
+    name: 'ModuleTest.Util',
     getName: function() {
         return list.get(0).name;
     }
@@ -62,12 +68,16 @@ test( "create Util Test", function() {
   equal(ModuleTest.Util.getName(), 'Edward', "测试create Util." );
 });
 module( "group Module Base" );
+// 新建一个Base模块测试
+// 在工程应用里，可以通过新建一个Base来让其他的模块都继承于此
+// 这样将会少些代码，也便于对通用事件的处理。Base并非是强制的，而是根据业务需求来建立
 var Base = Arm.create('Module', {
     name: 'Base',
     project: 'project-abc'
 });
 Arm.setBase(Base);
 Base.Config = Arm.create('Config', {
+    name: 'Base.Config',
     MESSAGE: {
         text: 'text'
     },
@@ -77,6 +87,7 @@ Base.Config = Arm.create('Config', {
     no: 3
 });
 Base.Dao = Arm.create('Dao', {
+    name: 'Base.Dao',
     success: function(json) {
         console.log('success:', json);
         return;
@@ -109,7 +120,7 @@ Base.Dao = Arm.create('Dao', {
             error = handle.error || this.error;
             fail  = handle.fail || this.fail;
         }
-        $.ajax({
+        Arm._.ajax({
             url: url,
             dataType: 'text',
             type: type,
@@ -225,7 +236,7 @@ Mo.SubModule.Config = Arm.create('Config', {
 }, {});
 Mo.Action = Arm.create('Action', {
     // 可以指定module，在get时，将直接从module开始查找
-    module: Mo
+    name: 'Mo.Action'
 });
 test( "create Action extendBase Test", function() {
     equal(Mo.Action.module.Config.test, 'test', "测试create Action." );
@@ -239,7 +250,7 @@ test( "create Action extendBase Test", function() {
 // class
 module( "group Module Class" );
 Mo.Class = Arm.create('Class', {
-    action: 'Mo.Action',
+    name: 'Mo.Class',
     properties: {
         name: 'zaizai',
         dao: Mo.Dao,
@@ -255,7 +266,7 @@ Mo.Class = Arm.create('Class', {
     // backup
 });
 Mo.SubModule.Class = Arm.create('Class', {
-    action: 'Mo.Action',
+    name: 'Mo.SubModule.Class',
     properties: {
         name: 'lichunping',
         age: 101
@@ -298,7 +309,7 @@ Mo.SubModule.Child.Config = Arm.create('Config', {
     }
 });
 Mo.SubModule.Child.Class = Arm.create('Class', {
-    action: Mo.Action,
+    name: 'Mo.SubModule.Child.Class',
     properties: {
         name: 'v'
     },
@@ -318,7 +329,8 @@ test("create sub module child Test", function() {
 // view
 module( "group View create" );
 Mo.View = Arm.create('View', {
-    action: Mo.Action,
+    //action: Mo.Action,
+    name: 'Mo.View',
     properties: {
         element: document.body,
         a1: 'a1'
@@ -326,9 +338,6 @@ Mo.View = Arm.create('View', {
     options: {
         a1: 'a1',
         element: document
-    },
-    name: {
-        a: 'a'
     },
     show: function() {
         return 'show:' + this.name.a;
@@ -365,6 +374,239 @@ test("create View Test", function() {
     equal(Mo.Action.getView(void 0, {}, true).options.element, document, "测试Mo.View" );
     equal(Mo.Action.getView('Mo.View', {}).options.element, document, "测试Mo.View" );
 });
+</script>
+<script>
+// Module.Action.get test
+module( "group Module get test" );
+var Mod = Arm.create('Module', {
+    name: 'Mod',
+    ABC: {},
+    SubModule: {
+    }
+});
+Mod.Action = Arm.create('Action', {
+    name: 'Mod.Action',
+    module: Mod
+})
+Mod.Class = Arm.create('Class', {
+    name: 'Mod.Class'
+});
+
+module( "group Action.get('Mode.XView|Mod.Sub.XView')" );
+
+test("Mod.Action.get('Class') test.", function() {
+    equal(Mod.Action.get('Class', {
+        name: 'abc'
+    }).options.name, 'abc', "测试Mod.Class" );
+    equal(Mod.Action.getClass('', {
+        name: 'Xtest'
+    }).options.name, 'Xtest', "测试Mod.Class" );
+    equal(Mod.Action.getClass('Class', {
+        name: 'abc123'
+    }).options.name, 'abc123', "测试Mod.Class" );
+});
+
+Mod.SubModule.Class = Arm.create('Class', {
+    name: 'Mod.SubModule.Class'
+});
+test("Mod.Action.get('SubModule.Class') test.", function() {
+    equal(Mod.Action.get('SubModule.Class', {
+        name: 'SubModule123'
+    }).options.name, 'SubModule123', "测试Mod.SubModule.Class" );
+    equal(Mod.Action.get('Mod.SubModule.Class', {
+        name: 'SubModuleABC'
+    }).options.name, 'SubModuleABC', "测试Mod.SubModule.Class" );
+});
+
+Mod.View = Arm.create('View', {
+    name: 'Mod.View',
+    properties: {
+    },
+    options: {
+    }
+});
+test("Mod.Action.get('Mod.View') test.", function() {
+    equal(Mod.Action.get('Mod.View', {
+        name: 'Mod.ViewX'
+    }).options.name, 'Mod.ViewX', "测试Mod.View" );
+    equal(Mod.Action.get('View', {
+        name: 'Mod.View123'
+    }).options.name, 'Mod.View123', "测试Mod.View" );
+});
+Mod.AView = Arm.create('View', {
+    name: 'Mod.AView',
+    options: {
+    }
+});
+test("Mod.Action.get('Mod.AView') test.", function() {
+    equal(Mod.Action.get('Mod.AView', {
+        name: 'Mod.AViewX'
+    }).options.name, 'Mod.AViewX', "测试Mod.AView" );
+    equal(Mod.Action.getView('AView', {
+        name: 'Xtest'
+    }).options.name, 'Xtest', "测试Mod.AView" );
+    equal(Mod.Action.getView('Mod.AView', {
+        name: 'Atest'
+    }).options.name, 'Atest', "测试Mod.AView" );
+    equal(Mod.Action.get('AView', {
+        name: 'Mod.AView123'
+    }).options.name, 'Mod.AView123', "测试Mod.AView" );
+});
+Mod.AbcView = Arm.create('View', {
+    options: {
+    },
+    name: 'Mod.AbcView'
+});
+test("Mod.Action.get('Mod.AbcView') test.", function() {
+    equal(Mod.Action.get('Mod.AbcView', {
+        name: 'Mod.AbcView'
+    }).options.name, 'Mod.AbcView', "测试Mod.AbcView" );
+    equal(Mod.Action.getView('AbcView', {
+        name: 'AbcView1'
+    }).options.name, 'AbcView1', "测试Mod.AbcView" );
+    equal(Mod.Action.getView('Mod.AbcView', {
+        name: 'AbcView2'
+    }).options.name, 'AbcView2', "测试Mod.AbcView" );
+    equal(Mod.Action.get('AbcView', {
+        name: 'Mod.AbcView3'
+    }).options.name, 'Mod.AbcView3', "测试Mod.AbcView" );
+});
+Mod.AUtil = Arm.create('Util', {
+    nmae: 'Mod.AUtil',
+    getName: function(name) {
+        return name || 'AUtil';
+    }
+});
+test("Mod.Action.get('Mod.AUtil') test.", function() {
+    equal(Mod.Action.get('Mod.AUtil').getName(), 'AUtil', "测试Mod.AUtil" );
+    equal(Mod.Action.getUtil('AUtil').getName('AUtil1'), 'AUtil1', "测试Mod.AUtil" );
+    equal(Mod.Action.getUtil('AUtil').getName('AUtil2'), 'AUtil2', "测试Mod.AUtil" );
+    equal(Mod.Action.get('AUtil').getName(), 'AUtil', "测试Mod.AUtil" );
+});
+Mod.AConfig = Arm.create('Config', {
+    name: 'Mod.AConfig',
+    MESSAGE: {
+        a: 'a',
+        b: 'b',
+        'c': 'c',
+        "d": "d"
+    },
+    action: Mod.Action
+});
+
+test("Mod.Action.get('Mod.AConfig') test.", function() {
+    equal(Mod.Action.get('Mod.AConfig').MESSAGE.a, 'a', "测试Mod.AConfig" );
+    equal(Mod.Action.getConfig('AConfig').MESSAGE.b, 'b', "测试Mod.AConfig" );
+    equal(Mod.Action.getConfig('Mod.AConfig').MESSAGE.c, 'c', "测试Mod.AConfig" );
+    equal(Mod.Action.get('AConfig').MESSAGE.d, 'd', "测试Mod.AConfig" );
+});
+
+Mod.ADao = Arm.create('Dao', {
+    name: 'Mod.ADao',
+    save: function() {
+        return 'ok';
+    },
+    action: Mod.Action
+});
+test("Mod.Action.get('Mod.ADao') test.", function() {
+    equal(Mod.Action.get('Mod.ADao').save(), 'ok', "测试Mod.ADao" );
+    equal(Mod.Action.getDao('ADao').save(), 'ok', "测试Mod.ADao" );
+    equal(Mod.Action.getDao('Mod.ADao').save(), 'ok', "测试Mod.ADao" );
+    equal(Mod.Action.get('ADao').save(), 'ok', "测试Mod.ADao" );
+});
+
+Mod.AClass = Arm.create('Class', {
+    name: 'Mod.AClass',
+    options: {
+        name: 'AClass'
+    },
+    action: Mod.Action
+});
+test("Mod.Action.get('Mod.AClass') test.", function() {
+    equal(Mod.Action.get('Mod.AClass').options.name, 'AClass', "测试Mod.AClass" );
+    equal(Mod.Action.getClass('AClass', {
+        name: 'AClassModify2'
+    }).options.name, 'AClassModify2', "测试Mod.AClass" );
+    equal(Mod.Action.getClass('Mod.AClass', null, true).options.name, 'AClass', "测试Mod.AClass" );
+    equal(Mod.Action.get('AClass', {
+        name: 'AClassModify3'
+    }).options.name, 'AClassModify3', "测试Mod.AClass" );
+});
+Mod.BcdClass = Arm.create('Class', {
+    name: 'Mod.BcdClass',
+    options: {
+        name: 'BcdClass'
+    },
+    action: 'Mod.Action'
+});
+test("Mod.Action.get('Mod.BcdClass') test.", function() {
+    equal(Mod.Action.get('Mod.BcdClass').options.name, 'BcdClass', "测试Mod.BcdClass" );
+    equal(Mod.Action.getClass('BcdClass', {
+        name: 'BcdClass2'
+    }).options.name, 'BcdClass2', "测试Mod.BcdClass" );
+    equal(Mod.Action.getClass('Mod.BcdClass', null, true).options.name, 'BcdClass', "测试Mod.BcdClass" );
+    equal(Mod.Action.get('BcdClass', {
+        name: 'BcdClass3'
+    }).options.name, 'BcdClass3', "测试Mod.BcdClass" );
+});
+Mod.ABC.View = Arm.create('View', {
+    name: 'Mod.ABC.View',
+    properties: {
+    },
+    options: {
+        name: 'Mod.ABC.View'
+    },
+    action: Mod.Action
+});
+test("Mod.Action.get('Mod.ABC.View') test.", function() {
+    equal(Mod.Action.get('Mod.ABC.View').options.name, 'Mod.ABC.View', "测试Mod.ABC.View" );
+    equal(Mod.Action.getView('Mod.ABC.View', {
+        name: 'Mod.ABC.View1'
+    }).options.name, 'Mod.ABC.View1', "测试Mod.ABC.View" );
+    equal(Mod.Action.getView('ABC.View', null, true).options.name, 'Mod.ABC.View', "测试Mod.ABC.View" );
+    equal(Mod.Action.get('ABC.View', {
+        name: 'Mod.ABC.View'
+    }).options.name, 'Mod.ABC.View', "测试Mod.ABC.View" );
+});
+
+Mod.SubModule.View = Arm.create('View', {
+    name: 'Mod.SubModule.View',
+    properties: {
+    },
+    options: {
+        name: 'Mod.SubModule.View'
+    }
+});
+test("Mod.Action.get('Mod.SubModule.View') test.", function() {
+    equal(Mod.Action.get('Mod.SubModule.View').options.name, 'Mod.SubModule.View', "测试Mod.SubModule.View" );
+    equal(Mod.Action.getView('Mod.SubModule.View', {
+        name: 'Mod.SubModule.View1'
+    }).options.name, 'Mod.SubModule.View1', "测试Mod.SubModule.View" );
+    equal(Mod.Action.getView('SubModule.View', null, true).options.name, 'Mod.SubModule.View', "测试Mod.SubModule.View" );
+    equal(Mod.Action.get('Mod.SubModule.View', {
+        name: 'Mod.SubModule.View'
+    }).options.name, 'Mod.SubModule.View', "测试Mod.SubModule.View" );
+});
+
+Mod.SubModule.XView = Arm.create('View', {
+    name: 'Mod.SubModule.XView',
+    properties: {
+    },
+    options: {
+        name: 'Mod.SubModule.XView'
+    }
+});
+test("Mod.Action.get('Mod.SubModule.XView') test.", function() {
+    equal(Mod.Action.get('SubModule.XView').options.name, 'Mod.SubModule.XView', "测试Mod.SubModule.XView" );
+    equal(Mod.Action.getView('SubModule.XView', {
+        name: 'Mod.SubModule.XView1'
+    }).options.name, 'Mod.SubModule.XView1', "测试Mod.SubModule.XView" );
+    equal(Mod.Action.getView('Mod.SubModule.XView', null, true).options.name, 'Mod.SubModule.XView', "测试Mod.SubModule.XView" );
+    equal(Mod.Action.get('Mod.SubModule.XView', {
+        name: 'Mod.SubModule.XView'
+    }).options.name, 'Mod.SubModule.XView', "测试Mod.SubModule.XView" );
+});
+
 </script>
 
  </body>

@@ -238,37 +238,7 @@ test( "object indexOf", function() {
 test( "inherits", function() {
   equal(child1.say(), 'hello Jarry', "测试inherits." );
 });
-// Module Test. see module.html
-module( "group Module create" );
-var Mo = Arm.create('Module', {
-    name: 'Mo',
-    SubModule: {
-        
-    }
-});
-Mo.Action = Arm.create('Action', {
-    module: Mo
-})
-Mo.Class = Arm.create('Class', {
-    action: 'Mo.Action'
-});
-Mo.SubModule.Class = Arm.create('Class', {
-    action: Mo.Action
-});
-Mo.View = Arm.create('View', {
-    properties: {
-    },
-    options: {
-    },
-    action: Mo.Action
-});
-Mo.SubModule.View = Arm.create('View', {
-    action: 'Mo.Action',
-    properties: {
-    },
-    options: {
-    }
-});
+
 </script>
 
  </body>

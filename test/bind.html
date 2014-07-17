@@ -41,10 +41,10 @@ var Mo = Arm.create('Module', {
     name: 'Mo'
 });
 Mo.Action = Arm.create('Action', {
-    module: 'Mo'
+    name: 'Mo.Action'
 });
 Mo.Class = Arm.create('Class', {
-    action: Mo.Action,
+    name: 'Mo.Class',
     properties: {
         name: 'Arm',
         age: 101
@@ -218,9 +218,9 @@ test( "Function AOP test", function() {
         var $ele = $('#AOPTest');
         // 如果参数非为true则且其他条件满足则执行后置行为
         if (p !== undefined && p == true) {
-            if ($ele[0].style.backgroundColor != 'red') {
+            if ($ele[0].style.backgroundColor != 'green') {
                 $ele.data('after', 'true');
-                $ele[0].style.backgroundColor = 'blue';
+                $ele[0].style.backgroundColor = 'green';
             }
         }
         $ele.html(p + ':after test succes.');

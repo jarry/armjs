@@ -13,7 +13,7 @@
 <pre>
 本例子是对表格内容的渲染、删除、排序等操作。
 本例充分说明了View与Class的区别，以及如何bind、trigger事件等。
-通过这里例子将很好地说明如何进行view-service分层开发，以便让代码结构清晰便于维护。
+通过这里例子将很好地说明如何进行view-service分层开发，以便让代码结构清晰便于维护，同时提升开发速度。
 - 点击获得该行的数据
 - 点击表头可以排序
 - 可以点击获取数据与更新原始数据
@@ -68,6 +68,7 @@ var items = [
   { id: 1008, name: "", value: "" },
   { id: 1010, name: null, value: 8 }
 ];
+// defined ArrayList
 var list = new Arm.Collection(items);
 // var list = Arm.create('ArrayList', items);
 
@@ -80,7 +81,7 @@ var Module = Arm.create('Module', {
 
 /** create Module.Action.js */
 Module.Action = Arm.create('Action', {
-    module: 'Module'
+    name: 'Module.Action'
 });
 
 /** create Module.Util.js */
@@ -116,7 +117,8 @@ Module.Util = Arm.create('Util', {
 // Class专门用来处理业务逻辑
 // 简单来说就是对JSON进行不断加工
 Module.Class = Arm.create('Class', {
-    action: Module.Action,
+    // action: 'Module.Action',
+    name: 'Module.Action',
     properties: {
         // 实例属性，相当于类的常量
         // 可以根据自身决定写不写属性
@@ -162,7 +164,8 @@ Module.Class = Arm.create('Class', {
 // View主要用来处理DOM，包括回填数据、校验、事件处理等
 // View可以起名为AbcView, 也可以通过子模块Module.Sub.View声明，根据自己的需要
 Module.View = Arm.create('View', {
-    action: Module.Action,
+    name: 'Module.View',
+    // action: 'Module.Action',
     properties: {
         $output: null,
         rowsData: null,

@@ -15,9 +15,10 @@
  <body>
 
 <div id="Container" style="background:blue;">
+<h1>Event Test.please move mouse in here.</h1>
     Container: click me! <a href="#" class="btn">view.run()</a>
     <ul class="list" style="background:red;">
-        list: click me.
+        list: click me. event prevent.
         <li class="item" style="background:green;"> Item:  mouseover and mouseout
         <em style="background:white;">Jarry</em>
         <span style="background:gray;">this is block</span>
@@ -36,7 +37,7 @@ var Mo = Arm.create('Module', {
     Sub: { }
 });
 Mo.Action = Arm.create('Action', {
-    module: Mo,
+    name: 'Mo.Action',
     // module: 'Mo',
     printInstance: function() {
         console.log(this.__instance__);
@@ -58,7 +59,7 @@ Mo.Class = Arm.create('Class', {
 var moClass = Mo.Action.getInstance('Mo.Class');
 Mo.View = Arm.create('View', {
     //action: Mo.Action,
-    action: 'Mo.Action',
+    name: 'Mo.View',
     properties: {
         name: 'my test',
         CONST: {
@@ -91,6 +92,11 @@ Mo.View = Arm.create('View', {
         */
         self.find('.btn').on('click', function(evt) {
             // Mo.Action.getView() === self;
+            // 通过Arm.run执行也可以
+            // Arm.run('Mo.Action',{});
+            // Arm.run(Mo.Action, 'Sub.View',{});
+            // Mo.Action.run();
+            // Mo.Action.run('Sub')
             Mo.Action.getView().run();
             evt.stopPropagation();
         });
@@ -152,7 +158,7 @@ var moClass = Mo.Action.getClass();
 
 /* submodule and inherits */
 Mo.Sub.Class = Arm.create('Class', {
-    action: Mo.Action,
+    name: 'Mo.Sub.Class',
     getName: function() {
         return 'sub.class' + '|' + this.options.name + '|' + this.name;
     }
@@ -169,6 +175,7 @@ var subClass = Mo.Action.getClass('Sub', {
 });
 Mo.Sub.View = Arm.create('View', {
     action: Mo.Action,
+    name: 'Mo.Sub.View',
     properties: {
         name: 'sub.view',
         //'class': moClass,
@@ -191,8 +198,8 @@ Mo.Sub.View = Arm.create('View', {
 module( "sub inherits test:" );
 
 test( "sub class inherits test", function() {
-    // this.name未赋值，属性不继承
-    ok(subClass.getName() == 'sub.class|john|undefined', "测试subClass.getName inherits test." );
+    // this.name为create时的文件name了，属性是不继承的
+    ok(subClass.getName() == 'sub.class|john|Mo.Sub.Class', "测试subClass.getName inherits test." );
     // 调用父类的setName方法更改子类的属性
     subClass.setName('max');
     // 重新属性

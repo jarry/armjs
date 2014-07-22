@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Sample with Arm</title>
+    <link href="css/sample.css" rel="stylesheet">
+    <script type="text/javascript" src="../core.js"></script>
+    <script type="text/javascript" src="../../../js-src/qui.js"></script>
+    <script type="text/javascript" src="night.js"></script>
+</head>
+<body>
+    <h3>使用Arm进行开发的简单样例</h3>
+    <p>最后更新时间: 2014-7-15</p>
+    <div id="Container">
+        <div id="FormContainer">        
+            <form id="MansInfo">
+                <input type="text" name="name" placeholder="Name">
+                <input type="text" name="empno" placeholder="Empno">
+                <label><input type="radio" name="sex" value="0">Male</label>
+                <label><input type="radio" name="sex" value="1">Female</label>
+                <button type="button" id="btn-add">ADD</button>
+            </form>
+        </div>
+        <div id="TableContainer">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Empno</th>
+                        <th>Sex</th>
+                        <th>Operation</th>
+                    </tr>
+                </thead>
+                <tbody>
+                <!-- Table Contents -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+<script type="text/x-jquery-tmpl" id="TemplateRow">
+<tr data-empno="${empno}">
+    <td class="d-name">${name}</td>
+    <td class="d-empno">${empno}</td>
+    <td class="d-sex">${sex}</td>
+    <td class="d-operation"><a href="javascript:;">remove</a></td>
+</tr>
+</script>
+
+<script>
+items = [   
+    { name: "Zhan", empno: 9000, sex: 0 },
+      { name: "Yang", empno: 9001, sex: 0 },
+      { name: "Eric", empno: 9002, sex: 1 },
+      { name: "River", empno: 9003, sex: 1 },
+      { name: "Shell", empno: 9005, sex: 0 },
+      { name: "Meng", empno: 9093, sex: 1 }
+];
+require.config({baseUrl:'.'});
+require(['night'], function() {
+    Night.Action.run('', {
+        $container: $('#Container'),
+        rowsData: items
+    });
+})
+</script>
+</body>
+</html>

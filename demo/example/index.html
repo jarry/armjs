@@ -11,26 +11,63 @@
   <script type="text/javascript" src="http://backbonejs.org/backbone.js"></script>
   <script type="text/javascript" src="http://code.jquery.com/jquery-1.11.0.js"></script>
 -->
-<script type="text/javascript" src="core.js"></script>
-
+<script type="text/javascript" src="../core.js"></script>
+    <script type="text/javascript" src="../../../js-src/qui.js"></script>
+    <script type="text/javascript" src="example.js"></script>
 </head>
-<h1>Arm最佳实践之一</h1>
-<h2>本例旨在通过Arm来实现一个一般复杂度的交互应用。包括：DOM操作、数据获取、模板渲染等基本功能。</h2>
-TODO：待续
+<h1>Arm最佳实践之一般复杂的界面</h1>
+<h2>功能包括：</h2>
+<ul>
+<li>从服务端获取数据，更新Model</li>
+<li>调整当前列表的顺序</li>
+<li>删除一行</li>
+<li>保存数据，只提供id列表(按顺序以逗号间隔)</li>
+</ul>
 <body>
-Create Test
-<script>
-console.log(Arm);
-var items = [
-  { name: "Edward", value: 21 },
-  { name: "Sharpe"},
-  { name: "And", value: 4},
-  { name: "The", value:null },
-  { name: "Magnetic"},
-  { name: "Zeros", value: 37 }
-];
-var list = new Arm.Collection(items);
-</script>
 
+<style>
+.Container-Example {
+    background-color: #f1f1f1;
+}
+.Container-Example .table {
+    width: 98%;
+    margin: 10px;
+}
+.Container-Example .table tr {
+    text-align: center;
+}
+.Container-Example .table tr:nth-child(even) {
+    background-color: rgb(235, 235, 205);
+}
+.Container-Example .table tbody tr:hover {
+    background-color: rgb(213, 213, 255);
+}
+</style>
+<div class="Container-Example" id="Container">
+    <table class="table">
+        <thead>
+            <tr>
+            <th class="thead-id" >No</th>
+            <th class="thead-name">Name</th>
+            <th class="thead-value">Value</th>
+            <th class="thead-control">control</th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+    <button class="btn btn-update">update to orgin data</button>
+    <button class="btn btn-all">get current data</button>
+    <div id="ContainerOutput"></div>
+</div>
+<a href="#" onclick="window.open('view-source:' + window.location.href)" target="_blank">view source</a>
+<script>
+require.config({baseUrl:'.'});
+require(['example'], function() {
+    Example.Action.run('', {
+        $container: $('#Container')
+    });
+})
+</script>
  </body>
 </html>

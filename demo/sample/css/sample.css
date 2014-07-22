@@ -1,0 +1,19 @@
+#MansInfo {
+    margin: 10px;
+}
+#Container .table {
+    width: 515px;
+    margin: 10px;
+}
+#Container .table tr {
+    text-align: center;
+}
+#Container .table thead tr {
+    background-color: rgb(213, 213, 213);
+}
+#Container .table tbody tr:nth-child(even) {
+    background-color: rgb(235, 235, 205);
+}
+#Container .table tbody tr:hover {
+    background-color: rgb(213, 213, 255);
+}

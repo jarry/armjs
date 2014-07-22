@@ -20,17 +20,22 @@ one javascript mvc framework for enterprise application
     Arm.Collection = Arm.ArrayList = ArrayList;
     Arm.Model = Model;
 ```
+
 # structure
     Action -> View -> Class -> Dao -> Model
-    
+        
     # Module, defined module info
     # Action,  control some Object and instancing Class, View
     # View, DOM process and Event bind
     # Class, JSON parse, and service logic
     # Dao, ajax request
     # Model, JSON object or Object-Class
+    # Config, JSON object, module config
+    # Util, JSON object, static method list
     
 # usage
+
+## create object
 
     1. create Module
 ```JavaScript
@@ -42,13 +47,13 @@ one javascript mvc framework for enterprise application
     2. create Action
 ```JavaScript
     Module.Action = Arm.create('Action', {
-        module: 'Module'
+        name: 'Module.Action'
     });
 ```
     3. create View
 ```JavaScript
     Module.View = Arm.create('View', {
-        action: Module.Action,
+        name: 'Module.View',
         element: document,
         properties: {
         
@@ -57,12 +62,31 @@ one javascript mvc framework for enterprise application
         
         }
     });
+
+    // XView
+    Module.XView = Arm.create('View', {
+        name: 'Module.XView',
+        element: document,
+        properties: {
+        },
+        options: {
+        }
+    });
+
+    // SubModule.View
+    Module.SubModule.XView = Arm.create('View', {
+        name: 'Module.SubModule.XView',
+        element: document,
+        properties: {
+        },
+        options: {
+        }
+    });
 ```
     4. create Class
 ```JavaScript
     Module.Class = Arm.create('Class', {
-        action: 'Module.Action',
-        view: 'Module.view',
+        name: 'Module.Class',
         properties: {
         
         },
@@ -70,15 +94,58 @@ one javascript mvc framework for enterprise application
         
         }
     });
+
+    // XClass
+    Module.XClass = Arm.create('Class', {
+        name: 'Module.XClass',
+        properties: {
+        
+        },
+        options: {
+        
+        }
+    });
+
+    // SubModule.XClass
+    SubModule.XClass = Arm.create('Class', {
+        name: 'SubModule.XClass',
+        properties: {
+        
+        },
+        options: {
+        
+        }
+        // hiherits from class 
+    }).inherits(Module.XClass);
 ```
     4. create Dao
 ```JavaScript
     Module.Dao = Arm.create('Dao', {
-        action: 'Module.Action',
+        name: 'Module.Dao',
+        getName: function(data, callback) {
+            // ajax
+        }
+    });
+
+    // XDao
+    Module.XDao = Arm.create('Dao', {
+        name: 'Module.XDao',
+        // don no extend from Base module
+        extendBase: false,
         getName: function(data, callback) {
             // ajax
         }
     }); 
+```
+
+## use instance
+```JavaScript
+    // extends
+    Module.Action.get('Class').extend({});
+    // run view
+    Module.Action.run({});
+
+    // TODO:
 ```
 
 # speical

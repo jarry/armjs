@@ -70,7 +70,7 @@
     Arm.View = null;
     // var Router, Cache, Storage;
 
-    // base object for inheirts by creating new object
+    // base object for inherits by creating new object
     var Base = root['Base'] || {};
 
     var arrPro  = Array.prototype,
@@ -572,7 +572,7 @@
             return obj;
         },
         /**
-         * inheirts by prototype, copy all methods from parent to child
+         * inherits by prototype, copy all methods from parent to child
          *
          * @function
          * @param {function} Child protoype class
@@ -666,14 +666,15 @@
             });
             return origin;
         },
-        copy: function(obj, source, condition) {
+        copy: function(obj, source, condition, includeOwn) {
             var prop;
+            includeOwn = includeOwn || true;
             condition = condition || function(prop, obj, source) {
                 // default do not override
                 return !(prop in obj);
             };
             for (prop in source) {
-                if (!source.hasOwnProperty(prop)) {
+                if (!includeOwn && !source.hasOwnProperty(prop)) {
                     break;
                 }
                 if (condition(prop, obj, source)) {
@@ -945,6 +946,12 @@
                 subModuleName: name.substring(0, lastDotIdx),
                 fullName: name
             };
+        },
+        extendBase: function(instance, base) {
+            var ignoreKeys = ['name', 'module'];
+            return _.copy(instance, base, function (prop, obj, source) {
+                return (obj[prop] === undefined && !_.inArray(ignoreKeys, prop));
+            });
         }
     };
 
@@ -1432,6 +1439,9 @@
             var self = this;
             var obj, module = self.module;
             // add the suffix that module's name to name param.
+            if (!self.module) {
+                logger.error('Action.get::', self, 'this Action has not defined `module`.');
+            }
             name = _util.addModuleForName(name, module.name);
             // get moduleinfo from name param
             moduleInfo = moduleInfo || _util.getModuleInfoByName(name, module.name);
@@ -1444,26 +1454,28 @@
                 (module.name + '.' + fullName) : fullName;
 
             obj = _.accessProperty(root, fullName);
-            logger.log('Action.get:', arguments, fullName, obj, type);
+
+            // logger.log('Action.get:', arguments, fullName, obj, type);
             var _getInstance = function(Clazz, options, isNew, fullName) {
                 if (typeof Clazz != 'function' || typeof fullName != 'string') {
-                    logger.log('[error]:getInstance:', 'Clazz is underfed or fullName is undefined.');
+                    logger.warn('[error]:getInstance:', 'Clazz is underfed or fullName is undefined.');
                     return;
                 }
                 var cache = self.__instance__;
                 var instance = cache[fullName];
                 if(isNew === true) {
-                    cache[fullName] = new Clazz(options);
-                    _Arm._data.push(instance);
-                    return cache[fullName];
-                }
-                if(instance === undefined) {
+                    // create new instance forced
                     instance = new Clazz(options);
-                    // add instance of `Class` to Arm.data
+                    _Arm._data.push(instance);
+                } else if(instance === undefined) {
+                    // create new instance first
+                    instance = new Clazz(options);
                     _Arm._data.push(instance);
                 } else {
+                    // only update
                     instance.update(options);
                 }
+                // set the lately instance
                 cache[fullName] = instance;
                 return instance;
             };
@@ -1502,12 +1514,24 @@
          */
         run: function(name, options, instanceOption) {
             var self = this;
+            var view;
             if (name instanceof Arm.View) {
                 return name.run(options);
             } else if ('string' == typeof name) {
-                return self.getView(name, options).run(instanceOption);
+                view = self.getView(name, options);
+                if (view.run) {
+                    return view.run(instanceOption);
+                } else {
+                    logger.warn('instance run:: has not run method.', view);
+                    return;
+                }
             }
-            return self.getView().run(name);
+            view = self.getView();
+            if (view.run) {
+                return view.run(name);
+            } else {
+                logger.warn('instance run:: has not run method.', view);
+            }
         }
     };
 
@@ -1616,10 +1640,7 @@
             }
             var instance = new Module(data, config);
             if (config.extendBase !== false) {
-                var ignoreKeys = ['name', 'version'];
-                return _.copy(instance, Base, function (prop, obj, source) {
-                    return (obj[prop] === undefined && !_.inArray(ignoreKeys, prop));
-                });
+                return _util.extendBase(instance, Base);
             } else {
                 return instance;
             }
@@ -1627,7 +1648,7 @@
         _createConfig: function (data, config) {
             var instance = new Config(data, config);
             if (config.extendBase !== false) {
-                return _.copy(instance, Base.Config);
+                return _util.extendBase(instance, Base.Config);
             } else {
                 return instance;
             }
@@ -1635,7 +1656,7 @@
         _createUtil: function (data, config) {
             var instance = new Util(data, config);
             if (config.extendBase !== false) {
-                return _.copy(instance, Base.Util);
+                return _util.extendBase(instance, Base.Util);
             } else {
                 return instance;
             }
@@ -1648,10 +1669,7 @@
             }
             var instance = new Action(data, config);
             if (config.extendBase !== false) {
-                var ignoreKeys = ['module'];
-                return _.copy(instance, Base, function (prop, obj, source) {
-                    return (obj[prop] === undefined && !_.inArray(ignoreKeys, prop));
-                });
+                return _util.extendBase(instance, Base.Action);
             } else {
                 return instance;
             }
@@ -1659,7 +1677,7 @@
         _createDao: function (data, config) {
             var instance = new Dao(data, config);
             if (config.extendBase !== false) {
-                return _.copy(instance, Base.Dao);
+                return _util.extendBase(instance, Base.Dao);
             } else {
                 return instance;
             }
@@ -1688,6 +1706,9 @@
             }
             // Class.prototype['__proto__'] = Arm.Class.prototype;
             // _.extend(Class.prototype, Arm.Class.prototype);
+            if (data.extendBase !== false && Base.Class) {
+                _.inherits(Class, Base.Class);
+            }
             _.inherits(Class, Arm.Class);
             Class.prototype.constructor = Class;
             Class.prototype.__super__ = Class.__super__ || Class;
@@ -1746,6 +1767,9 @@
                 }
                 this.construct = data.construct || data.init || function () {};
                 this.construct.call(this);
+            }
+            if (data.extendBase !== false && Base.View) {
+                _.inherits(View, Arm.View);
             }
             _.inherits(View, Arm.View);
             _.extend(View.prototype, {
@@ -1860,7 +1884,7 @@
                     _Arm._data.push(Obj);
                 }
             } else {
-                logger.log('create error: arguments is not correct.');
+                logger.error('create error: arguments is not correct.');
             }
             return Obj;
         },

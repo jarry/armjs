@@ -36,7 +36,10 @@ var ModuleTest = Arm.create('Module', {
     SubModule: {}
 });
 ModuleTest.Action = Arm.create('Action', {
-    name: 'ModuleTest.Action'
+    name: 'ModuleTest.Action',
+    sayHi: function(obj) {
+        console.log('ModuleTest.Action::sayHi()', this);
+    }
 });
 ModuleTest.Config = Arm.create('Config', {
     name: 'ModuleTest.Config',
@@ -75,6 +78,23 @@ var Base = Arm.create('Module', {
     name: 'Base',
     project: 'project-abc'
 });
+Base.Action = Arm.create('Action', {
+    name: 'Base.Action'
+});
+Base.Util = Arm.create('Util', {
+    name: 'Base.Util'
+});
+Base.Class = Arm.create('Class', {
+    properties: {
+        'value': 'Base.Class::value'
+    },
+    options: {
+        test: 'Base.Class:test'
+    },
+    getValue: function() {
+        return this.value;
+    }
+})
 Arm.setBase(Base);
 Base.Config = Arm.create('Config', {
     name: 'Base.Config',
@@ -173,6 +193,7 @@ var Mo = Arm.create('Module', {
     }
 });
 Mo.Dao = Arm.create('Dao', {
+    name: 'Mo.Dao',
     get: function(url, type, data, handle) {
         this.ajax(url || './data.json', type || 'get', { d: new Date() }, handle || {
             success: function(data) {
@@ -269,7 +290,8 @@ Mo.SubModule.Class = Arm.create('Class', {
     name: 'Mo.SubModule.Class',
     properties: {
         name: 'lichunping',
-        age: 101
+        age: 101,
+        dao: Base.Dao
     },
     get: function() {
         return 'get:' + this.name;
@@ -294,6 +316,9 @@ test( "create Class Test", function() {
             return 'this.name: ' + this.name;
         }
     }).say(), 'this.name: lichunping' , "测试create Class instance and extend Class." );
+    equal(typeof Mo.Action.getClass().dao, 'object', "测试create Class." );
+    equal(Mo.Action.getClass().dao.name, 'Mo.Dao', "测试create Class." );
+    equal(Mo.Action.getClass('SubModule').dao.name, 'Base.Dao', "测试create Class." );
 });
 module( "group Sub Module create" );
 // sub module child

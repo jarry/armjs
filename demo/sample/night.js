@@ -8,7 +8,7 @@
  * author: Smyle
  * date: 2014-06-25
  */
-define(
+qui(
     'night', [
         '../../../js-src/base/Base',
         '../../../js-src/base/Base.Config',
@@ -17,13 +17,14 @@ define(
         '../../../js-src/base/Base.Class',
         '../../../js-src/base/Base.View',
         '../../../js-src/base/Base.Dao',
-        'js/Night',
+        
         'js/Night.Config',
         'js/Night.Util',
         'js/Night.Action',
         'js/Night.Class',
         'js/Night.View',
-        'js/Night.Dao'
+        'js/Night.Dao',
+        'js/Night'
     ],
     function() {
     

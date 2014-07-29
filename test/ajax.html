@@ -138,7 +138,37 @@ module( "group ArrayList fetch" );
     xhrData.fetch(_getData, 'data', function(data) {
         console.log('this arraylist form server _getData:', data);
     });
-    /*
+
+    Arm._.ajax({
+        url: './list.json',
+        type: 'GET',
+        cache: false,
+        data: {
+            name: 'test111'
+        },
+        success: function() {
+            console.log('success:', arguments);
+        },
+        error: function() {
+            console.log('fail:', arguments);
+        }
+    });
+
+    Arm._.ajax({
+        url: './list.json',
+        type: 'POST',
+        data: {
+            name: 'test222',
+            value: 'abc123'
+        },
+        success: function() {
+            console.log('success:', arguments);
+        },
+        error: function() {
+            console.log('fail:', arguments);
+        }
+    });
+
     asyncTest( "Array fetch Test", function() {
         expect(1);
         setTimeout(function() {
@@ -146,7 +176,7 @@ module( "group ArrayList fetch" );
             start();
         }, 10);
     });
-    */
+    
 </script>
 
  </body>

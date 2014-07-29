@@ -725,8 +725,13 @@
             options = options || {};
             var type = options.type || 'GET';
             var url = options.url;
+            if (!url) {
+                logger.error('ajax:, url is not correct.', options);
+                return;
+            }
             var contentType = options.contentType || 'application/x-www-form-urlencoded; charset=UTF-8';
             var dataType = options.dataType || 'JSON';
+            type = type.toUpperCase();
             dataType = dataType.toUpperCase();
             var cache = options.cache || false;
             var async = options.async || true;
@@ -736,20 +741,31 @@
                     new ActiveXObject('Microsoft.XMLHTTP');
             };
             var xhr = _getXHR();
-            var data, value;
-            if (typeof options.data == 'object') {
+            var data = '', value = '';
+            if (typeof options.data == 'string') {
+                data = options.data;
+            } else {
                 for (var item in options.data) {
-                    value = type == 'GET' ? encodeURIComponent(options.data[item]) : options.data[item];
+                    value = (type == 'GET') ? encodeURIComponent(options.data[item]) : options.data[item];
                     data += (item + '=' + value + '&');
                 }
                 if (data.length > 0 && data[data.length - 1] == '&') {
                     data = data.substring(0, data.length - 1);
                 }
             }
-            data = data || options.data;
-            if (!cache && url && dataType == 'JSON') {
+
+            if (type == 'GET' && (data !== '' || !cache) ) {
                 var flag = url.indexOf('?') != -1 ? '&' : '?';
-                url = url + flag +  data + '&' + '_=' + new Date().getTime();
+                url = url + flag;
+            }
+            if (type == 'GET' && 'string' == typeof data) {
+                url += data;
+            }
+            if (type == 'GET' && !cache) {
+                if (url.indexOf('?') != -1) {
+                    url += '&';
+                }
+                url += '_=' + new Date().getTime();
             }
 
             xhr.open(type, url, async);
@@ -758,7 +774,9 @@
                 xhr.setRequestHeader(key, options.headers[key]);
             }
             xhr.upload.onprogress = function(e) {
-                options.progress.apply(xhr, e);
+                if ('function' == typeof options.progress) {
+                    options.progress.apply(xhr, e);
+                }
             };
             xhr.onreadystatechange = function() {
                 var data = xhr.responseText || xhr.responseXML;
@@ -1209,7 +1227,10 @@
         },
         set: function(index, item) {
             var list = this;
-            if (index && index < this.length && item) {
+            if (index !== undefined && index < this.length && item) {
+                if (!(item instanceof Model)) {
+                    item = new Model(item);
+                }
                 list[index] = item;
             }
             return this;

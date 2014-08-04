@@ -11,36 +11,38 @@ ArmJS
 
 ## [armjs manual/开发手册](/doc/ "参考手册")
 
-# basic data structure
-Action -> View -> Class -> Dao -> Model
+# basic data object
+    Action -> View -> Class -> Dao -> Model
         
-## Module, defined module info
-## Action,  control some Object and instancing Class, View
-## View, DOM process and Event bind
-## Class, JSON parse, and service logic
-## Dao, ajax request
-## Model, JSON object or Object-Class
-## Config, JSON object, module config
-## Util, JSON object, static method list
+    Module, defined module info
+    Action,  control some Object and instancing Class, View
+    View, DOM process and Event bind
+    Class, JSON parse, and service logic
+    Dao, ajax request
+    Model, JSON object or Object-Class
+    Config, JSON object, module config
+    Util, JSON object, static method list
     
 # usage
 
 ## create object
 
-    1. create Module
+1. create Module
 ```JavaScript
     var Module = Arm.create('Module', {
         name: 'Module',
         SubModule: {}
     });
 ```
-    2. create Action
+
+2. create Action
 ```JavaScript
     Module.Action = Arm.create('Action', {
         name: 'Module.Action'
     });
 ```
-    3. create View
+
+3. create View
 ```JavaScript
     Module.View = Arm.create('View', {
         name: 'Module.View',
@@ -73,7 +75,8 @@ Action -> View -> Class -> Dao -> Model
         }
     });
 ```
-    4. create Class
+
+4. create Class
 ```JavaScript
     Module.Class = Arm.create('Class', {
         name: 'Module.Class',
@@ -108,7 +111,8 @@ Action -> View -> Class -> Dao -> Model
         // hiherits from class 
     }).inherits(Module.XClass);
 ```
-    4. create Dao
+
+5. create Dao
 ```JavaScript
     Module.Dao = Arm.create('Dao', {
         name: 'Module.Dao',
@@ -139,12 +143,10 @@ Action -> View -> Class -> Dao -> Model
 ```
 
 # speical
- 
-  ## tradition multi pages, such as struts of Java Web
-  ## also support one page, likes backbone
+    tradition multi pages, such as struts of Java Web
+    also support one page, likes backbone
 
-
-# Example: 
+# Example:
 ```html
-    <b> see demo and test, require jQuery, jQuery Tmpl, and Qunit </b>
+    see demo and test, require jQuery, jQuery Tmpl, and Qunit
 ```

@@ -4,9 +4,9 @@ Arm开发说明
 ArmJS是一套适合Web开发的JS MVC轻量级框架，提供一套view-service-model的分层机制与相关约束，让代码更加清晰、简单与可维护
 
 ###  相关链接
- [armjs源码下载](/jarry/armjs/blob/master/src/arm.js "下载源码")
- [armjs测试用例](/jarry/armjs/tree/master/test "测试用例")
- [armjs测试DEMO](/jarry/armjs/tree/master/demo "测试DEMO")
+ [armjs源码下载](/src/arm.js "下载源码")
+ [armjs测试用例](/test "测试用例")
+ [armjs测试DEMO](/demo "测试DEMO")
 
 
 ### 基本数据类型

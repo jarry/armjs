@@ -1,15 +1,17 @@
 armjs
 =====
 # Description:
-** A lightweight, object-oriented JS framework for quickly creating clearly and structured web applications.
- *          <ol>
- *          <li>basic objects type: HashMap, ArrayList, Model</li>
- *          <li>built-in objects: Module, Util, Config, Action, Dao, Class, View</li>
- *          <li>create objects</li>
- *          <li>run action</li>
- *          </ol>
+### A lightweight, object-oriented JS framework for quickly creating clearly and structured web applications.
+*          <ol>
+*          <li>basic objects type: HashMap, ArrayList, Model</li>
+*          <li>built-in objects: Module, Util, Config, Action, Dao, Class, View</li>
+*          <li>create objects</li>
+*          <li>run action</li>
+*          </ol>
 
-one javascript mvc framework for enterprise application
+## [armjs manual](/doc/ "参考手册")
+
+## one javascript mvc framework for enterprise application
 ```JavaScript
     Arm._ = _;
     Arm.View = View;

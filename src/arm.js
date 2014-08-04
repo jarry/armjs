@@ -1082,6 +1082,9 @@
             }
             return this.set(attrs, _.extend({}, options));
         },
+        extend: function(source) {
+            return _.extend(this, source);
+        },
         toString: function() {
             try {
                 return root.JSON ? jsonStringify(this) : this.valueOf().toLocaleString();
@@ -1114,6 +1117,9 @@
             } else {
                 this.set(key, value, options);
             }
+        },
+        extend: function(source) {
+            return _.extend(this, source);
         },
         equals: function(obj) {
             obj = obj instanceof Model ? obj : new Model(obj);
@@ -1333,7 +1339,10 @@
         },
         uniqueBy: function(filed) {
             return this.unique(function(a, b) {
-                return _.isEqual(a[filed], b[filed]);
+                if (a[filed] !== undefined && b[filed] !== undefined) {
+                    return _.isEqual(a[filed], b[filed]);
+                }
+                return false;
             });
         },
         intersection: function(arr, comparer) {
@@ -1354,6 +1363,9 @@
         },
         orderBy: function(filed, order) {
             return this.sortBy(filed, order);
+        },
+        extend: function(source) {
+            return _.extend(this, source);
         },
         'fetch': Model.prototype.fetch,
         onFetch: function(data) {
@@ -1479,7 +1491,7 @@
             // logger.log('Action.get:', arguments, fullName, obj, type);
             var _getInstance = function(Clazz, options, isNew, fullName) {
                 if (typeof Clazz != 'function' || typeof fullName != 'string') {
-                    logger.warn('[error]:getInstance:', 'Clazz is underfed or fullName is undefined.');
+                    logger.warn('[error]:getInstance:', Clazz, fullName, 'Clazz is undefined or fullName is undefined.');
                     return;
                 }
                 var cache = self.__instance__;
@@ -1553,6 +1565,9 @@
             } else {
                 logger.warn('instance run:: has not run method.', view);
             }
+        },
+        extend: function(source) {
+            return _.extend(this, source);
         }
     };
 
@@ -1568,6 +1583,9 @@
         constructor: Util,
         getAction: function() {
             return this.module.getAction();
+        },
+        extend: function(source) {
+            return _.extend(this, source);
         }
     };
     // _.inherits(Util, HashMap);
@@ -1584,6 +1602,9 @@
         constructor: Config,
         getAction: function() {
             return this.action;
+        },
+        extend: function(source) {
+            return _.extend(this, source);
         }
     };
     // _.inherits(Config, HashMap);
@@ -1600,6 +1621,9 @@
         constructor: Dao,
         getAction: function() {
             return this.action;
+        },
+        extend: function(source) {
+            return _.extend(this, source);
         }
     };
 

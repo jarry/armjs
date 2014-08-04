@@ -1,6 +1,6 @@
-armjs
-=====
-# Description:
+ArmJS
+==============
+## Description:
 ### A lightweight, object-oriented JS framework for quickly creating clearly and structured web applications.
 *          <ol>
 *          <li>basic objects type: HashMap, ArrayList, Model</li>
@@ -9,7 +9,7 @@ armjs
 *          <li>run action</li>
 *          </ol>
 
-## [armjs manual](/doc/ "参考手册")
+## [armjs manual/开发手册](/doc/ "参考手册")
 
 ## one javascript mvc framework for enterprise application
 ```JavaScript

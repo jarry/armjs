@@ -27,7 +27,7 @@ ArmJS
 
 ## create object
 
-1. create Module
+### create Module
 ```JavaScript
     var Module = Arm.create('Module', {
         name: 'Module',
@@ -35,14 +35,14 @@ ArmJS
     });
 ```
 
-2. create Action
+### create Action
 ```JavaScript
     Module.Action = Arm.create('Action', {
         name: 'Module.Action'
     });
 ```
 
-3. create View
+### create View
 ```JavaScript
     Module.View = Arm.create('View', {
         name: 'Module.View',
@@ -76,7 +76,7 @@ ArmJS
     });
 ```
 
-4. create Class
+### create Class
 ```JavaScript
     Module.Class = Arm.create('Class', {
         name: 'Module.Class',
@@ -112,7 +112,7 @@ ArmJS
     }).inherits(Module.XClass);
 ```
 
-5. create Dao
+### create Dao
 ```JavaScript
     Module.Dao = Arm.create('Dao', {
         name: 'Module.Dao',

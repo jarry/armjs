@@ -292,12 +292,19 @@
         },
         omit: function(obj, iterator, context) {
             var keys;
+            var isHashMap = (obj instanceof HashMap);
             if (_.isFunction(iterator)) {
                 iterator = _.negate(iterator);
             } else {
                 keys = _.map(concat.apply([], slice.call(arguments, 1)), String);
                 iterator = function(value, key) {
-                    return !_.contains(keys, key);
+                    if (isHashMap) {
+                        if (obj.hasOwnProperty(key)) {
+                            return !_.contains(keys, key);
+                        }
+                    } else {
+                        return !_.contains(keys, key);
+                    }
                 };
             }
             return _.pick(obj, iterator, context);
@@ -802,6 +809,7 @@
         },
         send: function(url, type, data, handle, cache) {
             var callback, success, error;
+            type = typeof type == 'string' ? type : 'GET';
             if (typeof handle == 'function') {
                 callback = handle;
             } else {
@@ -816,7 +824,7 @@
             var ajax = $.ajax || _.ajax;
             ajax({
                 url: url,
-                type: type || 'GET',
+                type: type,
                 cache: cache || false,
                 data: data,
                 progress: handle.progress,
@@ -970,6 +978,33 @@
             return _.copy(instance, base, function (prop, obj, source) {
                 return (obj[prop] === undefined && !_.inArray(ignoreKeys, prop));
             });
+        },
+        addEvent: function(view, evt, selector, func) {
+            var _call = function() {
+                var args = slice.call(arguments, 0);
+                if (view[func]) {
+                    view[func].apply(view, args.concat(this));
+                }
+            };
+            if (selector) {
+                view.on(evt, selector, _call);
+            } else {
+                view.on(evt, _call);
+            }
+        },
+        bindEvents: function(view, events) {
+            var idx, func, evt, selector;
+            if ('object' != typeof events) {
+                return;
+            }
+            for (var item in events) {
+                idx = item.indexOf(' ');
+                idx = idx > 0 ? idx : item.length;
+                evt = item.substr(0, idx);
+                selector = item.substr(++idx);
+                func = events[item];
+                _util.addEvent(view, evt, selector, func);
+            }
         }
     };
 
@@ -1085,6 +1120,15 @@
         extend: function(source) {
             return _.extend(this, source);
         },
+        toPlain: function() {
+            var result = {};
+            for (var attr in this) {
+                if (this.hasOwnProperty(attr)) {
+                    result[attr] = this[attr];
+                }
+            }
+            return result;
+        },
         toString: function() {
             try {
                 return root.JSON ? jsonStringify(this) : this.valueOf().toLocaleString();
@@ -1129,7 +1173,6 @@
         // 2: url, type, data, handle. handle is an object or callback
         fetch: function(url, type, data, handle) {
             var self = this;
-            type = type || 'GET';
             data = data || {};
             var len = arguments.length;
             var args = slice.call(arguments, 0);
@@ -1179,8 +1222,22 @@
         },
         getBy: function(attr, value) {
             var result = [];
+            var map = {};
+            if ('string' == typeof attr) {
+                map[attr] = value;
+            } else {
+                map = arguments[0];
+            }
+            var comparer = function(item, map) {
+                for (var key in map) {
+                    if (map[key] !== item[key]) {
+                        return false;
+                    }
+                }
+                return true;
+            };
             for (var i = 0, l = this.length; i < l; i++) {
-                if (value == this[i][attr]) {
+                if (comparer(this[i], map)) {
                     result.push(this.get(i));
                 }
             }
@@ -1270,6 +1327,27 @@
         contains: function(item, comparer) {
             return _.contains(this, item, comparer);
         },
+        containsBy: function(attr, value) {
+            var result = false;
+            var map = {};
+            if ('string' == typeof attr) {
+                map[attr] = value;
+            } else {
+                map = arguments[0];
+            }
+            if (_.isEmptyObject(map)) {
+                return false;
+            }
+            var comparer = function(item, map) {
+                for (var key in map) {
+                    if (map[key] !== item[key]) {
+                        return false;
+                    }
+                }
+                return true;
+            };
+            return this.contains(map, comparer);
+        },
         indexOf: function(item, from, comparer) {
             return _.indexOf(this, item, from, comparer);
         },
@@ -1325,8 +1403,20 @@
         toString: function() {
             return root.JSON ? jsonStringify(this) : 'function Array(){\n   [variant code]\n}';
         },
+        toPlain: function() {
+            var result = [];
+            _.each(this, function(item) {
+                result.push(item.toPlain());
+            });
+            return result;
+        },
         toArray: function(options) {
-            return slice.call(this, options);
+            // return slice.call(this, options);
+            var result = [];
+            _.each(this, function(item) {
+                result.push(item);
+            });
+            return result;
         },
         format: function(keyMap, formater) {
             _.each(this, function(model) {
@@ -1746,7 +1836,7 @@
                 this.options = _.deepClone(data.options) || {};
                 _.extend(this.options, options);
                 // _.extend(true, this.options, options); // deep extend
-                this.construct = data.construct || data.init || function () {};
+                this.construct = data.construct || data.init || this.init;
                 this.construct.call(this);
             }
             // Class.prototype['__proto__'] = Arm.Class.prototype;
@@ -1755,9 +1845,9 @@
                 _.inherits(Class, Base.Class);
             }
             _.inherits(Class, Arm.Class);
-            Class.prototype.constructor = Class;
-            Class.prototype.__super__ = Class.__super__ || Class;
-            Class.prototype.constructor.name = 'Class';
+            if (typeof Class.prototype.init != 'function') {
+                Class.prototype.init = function(options) {};
+            }
             Class.inherits = function (parent) {
                 return _.inherits(this, parent);
             };
@@ -1779,6 +1869,9 @@
                     Class.prototype[fn].after = _.after;
                 }
             }
+            Class.prototype.constructor = Class;
+            Class.prototype.__super__ = Class.__super__ || Class;
+            Class.prototype.constructor.name = 'Class';
             return Class;
         },
         _createView: function (data, config) {
@@ -1810,19 +1903,23 @@
                 if (!_.isElement(this.options.element)) {
                     logger.warn('new View init:', this, 'is not defined element or $container.');
                 }
-                this.construct = data.construct || data.init || function () {};
+                // data.events = { 'click .selector': 'event'}
+                _util.bindEvents(this, data.events);
+                this.construct = data.construct || data.init || this.init;
                 this.construct.call(this);
             }
             if (data.extendBase !== false && Base.View) {
                 _.inherits(View, Arm.View);
             }
             _.inherits(View, Arm.View);
-            _.extend(View.prototype, {
-                init: function (options) {
+            if (typeof View.prototype.init != 'function') {
+                View.prototype.init = function(options) {
                     if (this.bindEvent) {
                         this.bindEvent(options);
                     }
-                },
+                };
+            }
+            _.extend(View.prototype, {
                 // every view should own bindEvent for bind events
                 // bindEvent: function(options) { },
                 // every view should own run for Action
@@ -1846,18 +1943,29 @@
                     return process.call(this, content, ele, tmplElement, data);
                 },
                 getElement: function () {
-                    return this.options.element;
+                    if (this.options.element) {
+                        return this.options.element;
+                    } else if (this.options.$container) {
+                        return this.options.$container[0];
+                    }
                 },
                 getContainer: function () {
-                    return this.options.$container;
+                    return this.options.$container || $(this.getElement());
                 },
                 on: function() {
                     this.getContainer().on.apply(this.getContainer(), arguments);
                 },
-                trigger: function (event, data, ele, onlyHandlers) {
+                // trigger('click', [params] | '.selector' | element, [params])
+                trigger: function (event, selector, args) {
                     var $container = this.getContainer();
-                    if ($container && $container.trigger) {
-                        $container.trigger(event, data, ele, onlyHandlers);
+                    // if selector is string or element, using delegate
+                    if (_.isString(selector) || _.isElement(selector)) {
+                        $container = $container.find(selector);
+                    } else {
+                        args = selector;
+                    }
+                    if ($container.trigger) {
+                        $container.trigger(event, args);
                     }
                     return this;
                 },
@@ -1884,15 +1992,16 @@
                     return this;
                 };
             });
-            View.prototype.constructor = View;
-            View.prototype.__super__ = View.__super__ || View;
-            View.prototype.constructor.name = 'View';
             View.inherits = function (parent) {
                 return _.inherits(this, parent);
             };
-            // copy method to  prototype
+            // copy method to  prototype, filter options, properties, events
             for (var item in data) {
-                if (item !== 'options' && item !== 'properties') {
+                if (
+                    item !== 'options' &&
+                    item !== 'properties' &&
+                    item !== 'events'
+                ) {
                     View.prototype[item] = data[item];
                 }
             }
@@ -1904,6 +2013,9 @@
                     View.prototype[fn].after = _.after;
                 }
             }
+            View.prototype.constructor = View;
+            View.prototype.__super__ = View.__super__ || View;
+            View.prototype.constructor.name = 'View';
             return View;
         },
         /**

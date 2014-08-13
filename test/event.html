@@ -24,6 +24,8 @@
         <span style="background:gray;">this is block</span>
         </li>
     <ul>
+<button class="btn btn-submit">subView.showName</button>
+<button class="btn btn-trigger">subView.triggerClick</button>
 </div>
 
 <div id="qunit"></div>
@@ -71,6 +73,13 @@ Mo.View = Arm.create('View', {
             '3': 'blue'
         }
     },
+    // bind events
+    events: {
+        // 一般事件
+        'click button.btn-submit': 'showName',
+        // 自定义事件
+        'triggerClick .btn-trigger': 'triggerClick'
+    },
     options: {
         element: null,
         $container: null,
@@ -82,7 +91,7 @@ Mo.View = Arm.create('View', {
         var c = self.getAction().getClass();
         c.setName('Tom');
         // bind one custom event
-        self.getContainer().on('showName', self.showName);
+        self.getContainer().on('container.customEvent', self.customEvent);
         /* use dalegate
         self.click('.btn', function() {
             self.run();
@@ -100,15 +109,27 @@ Mo.View = Arm.create('View', {
             Mo.Action.getView().run();
             evt.stopPropagation();
         });
+        self.find('.btn-trigger').on('mouseover', function() {
+            self.trigger('triggerClick', '.btn-trigger');
+        });
     },
+    customEvent: function() {
+        console.log('customEvent:', this, arguments);
+    },
+    // $('.btn-trigger').trigger('triggerClick')
     triggerClick: function() {
+        alert('you have been call the method: `triggerClick`')
         this.trigger('mouseover');
+        this.trigger('container.customEvent', ['参数123']);
+        this.trigger('click', 'button.btn-submit', ['param1', '参数2']);
+        return false;
     },
-    showName: function(evt, self) {
-        self = self || this;
-        console.log('showName:', arguments);
+    showName: function(evt, ele) {
+        var self = this;
+        console.log('showName:', arguments, self);
         var $items = self.find(self.options.itemSelector);
         alert('view.showName():' + $($items[0]).find('em').text() );
+        return false;
     },
     setName: function(name) {
         console.log('view.setName:', arguments);
@@ -116,7 +137,7 @@ Mo.View = Arm.create('View', {
         $($items[0]).find('em').html(name);
     },
     run: function() {
-        alert('view.run()' + this);
+        // alert('view.run()' + this);
         this.trigger('mouseout');
         // this name is `Tom`
         this.setName(this.action.getClass().getName());
@@ -139,14 +160,14 @@ view.click(function(evt) {
     this.style.backgroundColor = 'purple';
 }).mouseout(function(evt) {
     //console.log(this, evt);
-    this.style.backgroundColor = '';
+    this.style.backgroundColor = 'olive';
 });
 view.mouseover('.item', function(evt) {
     //console.log(this, evt);
     this.style.backgroundColor = 'green';
 }).mouseout('.item', function(evt) {
     //console.log(this, evt);
-    this.style.backgroundColor = '';
+    this.style.backgroundColor = 'orange';
 }).click('.item', function(evt) {
     alert(this.innerHTML);
     evt.preventDefault();
@@ -218,7 +239,7 @@ var subView = Mo.Action.getView('Sub', {
     }
 );*/
 test( "sub view inherits test", function() {
-    equal(subView.options.element.style.backgroundColor, 'blue', "测试subView.options.element inherits test.");
+    equal(subView.options.element.style.backgroundColor, 'olive', "测试subView.options.element inherits test.");
     equal(typeof subView.showName, 'function', "测试typeof subView.showName inherits test.");
     // 子view的class被定义过，故取到的是Mo.Sub.Class，而非Mo.Class
     subClass.setName('marry');
@@ -232,6 +253,10 @@ test( "sub view inherits test", function() {
 });
 
 </script>
-<button onclick="subView.run()">subView.run</button>
- </body>
+<script>
+$(function() {
+    Mo.Action.run();
+});
+</script>
+</body>
 </html>

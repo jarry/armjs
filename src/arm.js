@@ -39,15 +39,6 @@
         breaker = {},
         console = root.console,
         logger  = console || {};
-    var jsonParse, jsonStringify;
-    if (root.JSON) {
-        jsonParse     = JSON.parse;
-        jsonStringify = JSON.stringify;
-    } else {
-        jsonParse = $.parseJSON || function(data) {
-            return (new Function('return ' + data))();
-        };
-    }
 
     if (!logger.log) {
         logger.log = function() {};
@@ -119,6 +110,16 @@
         isNumber: function(obj) {
             return ('[object Number]' == objPro.toString.call(obj));
         },
+        isBoolean: function(obj) {
+            return ('[object Boolean]' == objPro.toString.call(obj));
+        },
+        isJSONType: function(obj) {
+            if ( _.isString(obj) || _.isNumber(obj) || _.isBoolean(obj) ||
+                _.isObject(obj) || _.isArray(obj) || obj === null ) {
+                return true;
+            }
+            return false;
+        },
         isDate: function(obj) {
             return ('[object Date]' == objPro.toString.call(obj));
         },
@@ -145,6 +146,23 @@
                 return false;
             }
             return true;
+        },
+        stringifyJSON: function(json) {
+            if (root.JSON) {
+                return root.JSON.stringify(json);
+            }
+            return json;
+        },
+        parseJSON: function(json) {
+            var parse;
+            if (root.JSON) {
+                parse = root.JSON.parse;
+            } else {
+                parse = $.parseJSON || function(data) {
+                    return (new Function('return ' + data))();
+                };
+            }
+            return parse(json);
         },
         isEqual: function ( one, two ) {
             var prop, i, l = 0;
@@ -708,7 +726,7 @@
                 return strPro.slice.call(obj);
             } else if (_.isDate(obj)) {
                 return new Date(obj.valueOf());
-            } else if (_.isFunction(obj.clone)) {
+            } else if ( !(obj instanceof HashMap) && _.isFunction(obj.clone)) {
                 return obj.clone();
             }
             var clone;
@@ -788,7 +806,7 @@
             xhr.onreadystatechange = function() {
                 var data = xhr.responseText || xhr.responseXML;
                 if (data && dataType == 'JSON') {
-                    data = jsonParse(data);
+                    data = _.parseJSON(data);
                 }
                 if (xhr.readyState == 4) {
                     var stat = xhr.status;
@@ -928,6 +946,25 @@
         getObject: function(obj) {
             if ('string' == typeof obj && obj.length > 0) {
                 obj = _.accessProperty(root, obj);
+            }
+            return obj;
+        },
+        toJSON: function(obj) {
+            if (_.isObject(obj)) {
+                for (var attr in obj) {
+                    if (!_.isJSONType(obj[attr])) {
+                        delete obj[attr];
+                    } else {
+                        if (typeof obj[attr] == 'object') {
+                            _util.toJSON(obj[attr]);
+                        }
+                    }
+                }
+                return obj;
+            } else if (_.isArrayOrList(obj)) {
+                _.each(obj, function(item, i) {
+                    obj[i] = _util.toJSON(obj[i]);
+                });
             }
             return obj;
         },
@@ -1072,7 +1109,7 @@
             return result;
         },
         clone: function() {
-            return _.clone(this);
+            return _.clone(true, this);
         },
         put: function(key, value) {
             return this.set(key, value);
@@ -1122,16 +1159,23 @@
         },
         toPlain: function() {
             var result = {};
+            var self = this;
             for (var attr in this) {
                 if (this.hasOwnProperty(attr)) {
                     result[attr] = this[attr];
+                    if (result[attr] instanceof HashMap || result[attr] instanceof ArrayList) {
+                        result[attr] = result[attr].toPlain();
+                    }
                 }
             }
             return result;
         },
+        toPlainJSON: function() {
+            return _util.toJSON(this.toPlain());
+        },
         toString: function() {
             try {
-                return root.JSON ? jsonStringify(this) : this.valueOf().toLocaleString();
+                return root.JSON ? _.stringifyJSON(this) : this.valueOf().toLocaleString();
             } catch (e) {
                 logger.error(e);
             }
@@ -1165,6 +1209,9 @@
         extend: function(source) {
             return _.extend(this, source);
         },
+        clone: function() {
+            return _.clone(this);
+        },
         equals: function(obj) {
             obj = obj instanceof Model ? obj : new Model(obj);
             return _.isEqual(this, obj);
@@ -1181,6 +1228,15 @@
                     if (json === undefined) {
                         return self;
                     }
+                
+                    if ('string' === typeof json) {
+                        try {
+                            json = _.parseJSON(json);
+                        } catch(ex) {
+                            logger.error('Model.fetch::', self, ex);
+                        }
+                    }
+
                     var data = ('object' == typeof json.data) ? json.data : json;
                     self.update(data);
                     self.onFetch(data);
@@ -1193,8 +1249,8 @@
             _.fetch.apply(self, args);
             return self;
         },
-        onFetch: function(data) {
-            logger.log('onFetch:', data, this);
+        onFetch: function(func) {
+            logger.log('onFetch:', func, this);
             return this;
         }
     };
@@ -1296,6 +1352,12 @@
                 }
                 list[index] = item;
             }
+            return this;
+        },
+        setBy: function(attr, value, options) {
+            this.each(function(model) {
+                model.set(attr, value, options);
+            });
             return this;
         },
         update: function(origin, item) {
@@ -1401,7 +1463,7 @@
             return new ArrayList(_.clone(this));
         },
         toString: function() {
-            return root.JSON ? jsonStringify(this) : 'function Array(){\n   [variant code]\n}';
+            return root.JSON ? _.stringifyJSON(this) : 'function Array(){\n   [variant code]\n}';
         },
         toPlain: function() {
             var result = [];
@@ -1409,6 +1471,9 @@
                 result.push(item.toPlain());
             });
             return result;
+        },
+        toPlainJSON: function() {
+            return _util.toJSON(this.toPlain());
         },
         toArray: function(options) {
             // return slice.call(this, options);

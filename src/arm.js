@@ -1108,6 +1108,9 @@
             }
             return result;
         },
+        extend: function(source) {
+            return _.extend(this, source);
+        },
         clone: function() {
             return _.clone(true, this);
         },
@@ -1154,8 +1157,51 @@
             }
             return this.set(attrs, _.extend({}, options));
         },
-        extend: function(source) {
-            return _.extend(this, source);
+        update:  function(key, value, options) {
+            if ('object' == typeof key) {
+                for (var attr in  key) {
+                    this[attr] = key[attr];
+                }
+            } else {
+                this.set(key, value, options);
+            }
+        },
+        // 1: call function, data, handle[callback]
+        // 2: url, type, data, handle. handle is an object or callback
+        fetch: function(url, type, data, handle) {
+            var self = this;
+            data = data || {};
+            var len = arguments.length;
+            var args = slice.call(arguments, 0);
+            handle = handle || {
+                success: function(json) {
+                    if (json === undefined) {
+                        return self;
+                    }
+                
+                    if ('string' === typeof json) {
+                        try {
+                            json = _.parseJSON(json);
+                        } catch(ex) {
+                            logger.error('Model.fetch::', self, ex);
+                        }
+                    }
+
+                    var data = ('object' == typeof json.data) ? json.data : json;
+                    self.update(data);
+                    self.onFetch(data);
+                }
+            };
+            if (len >= 4 && 'object' == typeof handle) {
+                args.pop();
+            }
+            args.push(handle);
+            _.fetch.apply(self, args);
+            return self;
+        },
+        onFetch: function(func) {
+            logger.log('onFetch:', func, this);
+            return this;
         },
         toPlain: function() {
             var result = {};
@@ -1197,61 +1243,9 @@
         // defined attributeKey and Type for data serialize
         attributeKey: 'id',
         attributeType: 'type',
-        update:  function(key, value, options) {
-            if ('object' == typeof key) {
-                for (var attr in  key) {
-                    this[attr] = key[attr];
-                }
-            } else {
-                this.set(key, value, options);
-            }
-        },
-        extend: function(source) {
-            return _.extend(this, source);
-        },
-        clone: function() {
-            return _.clone(this);
-        },
         equals: function(obj) {
             obj = obj instanceof Model ? obj : new Model(obj);
             return _.isEqual(this, obj);
-        },
-        // 1: call function, data, handle[callback]
-        // 2: url, type, data, handle. handle is an object or callback
-        fetch: function(url, type, data, handle) {
-            var self = this;
-            data = data || {};
-            var len = arguments.length;
-            var args = slice.call(arguments, 0);
-            handle = handle || {
-                success: function(json) {
-                    if (json === undefined) {
-                        return self;
-                    }
-                
-                    if ('string' === typeof json) {
-                        try {
-                            json = _.parseJSON(json);
-                        } catch(ex) {
-                            logger.error('Model.fetch::', self, ex);
-                        }
-                    }
-
-                    var data = ('object' == typeof json.data) ? json.data : json;
-                    self.update(data);
-                    self.onFetch(data);
-                }
-            };
-            if (len >= 4 && 'object' == typeof handle) {
-                args.pop();
-            }
-            args.push(handle);
-            _.fetch.apply(self, args);
-            return self;
-        },
-        onFetch: function(func) {
-            logger.log('onFetch:', func, this);
-            return this;
         }
     };
     _.inherits(Model, HashMap);
@@ -1572,7 +1566,7 @@
         getClass: function(name, options, isNew, type) {
             if ('object' == typeof name && name !== null) {
                 options = name;
-                isNew   = options;
+                // isNew   = options;
                 name    = '';
             }
             type = type || 'Class';

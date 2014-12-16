@@ -22,7 +22,7 @@
 (function(root, factory) {
     if (typeof define === 'function' && define.amd) {
         define(['jquery', 'exports'], function($, exports) {
-            root.Arm = factory(root, exports, $);
+            root.Arm = factory(root, exports, $ || root.$);
         });
     } else if (typeof exports !== 'undefined') {
         factory(root, exports, $);
@@ -1150,7 +1150,14 @@
         remove: function(attr, options) {
             return this.unset(attr, options);
         },
+        equals: function(obj) {
+            obj = obj instanceof HashMap ? obj : new HashMap(obj);
+            return _.isEqual(this, obj);
+        },
         clear: function(options) {
+            return this.empty();
+        },
+        empty: function(options) {
             var attrs = {};
             for (var key in this) {
                 attrs[key] = void 0;
@@ -1173,7 +1180,7 @@
             data = data || {};
             var len = arguments.length;
             var args = slice.call(arguments, 0);
-            handle = handle || {
+            var _handle = _.extend({
                 success: function(json) {
                     if (json === undefined) {
                         return self;
@@ -1183,19 +1190,20 @@
                         try {
                             json = _.parseJSON(json);
                         } catch(ex) {
-                            logger.error('Model.fetch::', self, ex);
+                            logger.error('fetch::', self, data, ex);
                         }
                     }
 
                     var data = ('object' == typeof json.data) ? json.data : json;
+                    self.empty();
                     self.update(data);
                     self.onFetch(data);
                 }
-            };
+            }, handle);
             if (len >= 4 && 'object' == typeof handle) {
                 args.pop();
             }
-            args.push(handle);
+            args.push(_handle);
             _.fetch.apply(self, args);
             return self;
         },
@@ -1417,7 +1425,7 @@
         remove: function(start, end) {
             end = end || start + 1;
             if (end > 0 && start <= this.size()) {
-                return this.splice(start, end - start);
+                this.splice(start, end - start);
             }
             return this;
         },
@@ -1452,6 +1460,10 @@
         },
         empty: function() {
             return this.remove(0, this.length);
+        },
+        equals: function(obj) {
+            obj = obj instanceof ArrayList ? obj : new ArrayList(obj);
+            return _.isEqual(this, obj);
         },
         clone: function() {
             return new ArrayList(_.clone(this));
@@ -1992,12 +2004,13 @@
                     data = data instanceof Arm.ArrayList ? data.slice(0) : data;
                     var content = 'object' == typeof data ? _.tmpl(tmplElement, data) : data;
                     process = process || function (content, ele, tmplElement, data) {
+                        var html = content.html ? content.html() : content;
                         if (typeof $ == 'function') {
                             $(ele).html(content);
                         } else {
-                            ele.innerHTML = content;
+                            ele.innerHTML = html;
                         }
-                        return content;
+                        return html;
                     };
                     return process.call(this, content, ele, tmplElement, data);
                 },

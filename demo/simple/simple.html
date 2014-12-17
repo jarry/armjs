@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Sample with Arm</title>
+
+        <!--
+        开发模式与线上模式通过脚本自动替换
+        -->
+
+        <link href="dist/css/qui.css" rel="stylesheet">
+
+        <!-- // QUI开发模式，指向css-src下 -->
+        <link href="./css-src/sample.css" rel="stylesheet">
+
+        <!-- // QUI开发模式，指向js-src下，然后本地可以通过proxy代理到trunk的qui src目录 -->
+        <script type="text/javascript" src="../core.js"></script>
+
+        <!-- // QUI直接引用压缩合并后的代码模式 -->
+        <!--<script type="text/javascript" src="dist/js/qui.js"></script>-->
+
+        <script>
+            qui.config(
+                {
+                    // 上线模式，指向压缩合并后的地址(一般是线上某个路径)
+                    // baseUrl: './dist/js'
+
+                    // 开发模式
+                    baseUrl: './js'
+                }
+            );
+        </script>
+    </head>
+    <body>
+    <div class=" wrapper wrapper-simple">
+        <h2>本例路径采用requirejs方式引入，路径待配置，请直接查看源码</h2>
+        <form class="form-horizontal" id="ContainerSimple" role="form">
+            <div class="panel panel-default">
+                <div class="panel-heading">使用Arm进行开发的简单样例</div>
+                <div class="panel-body">
+                    <div class="form-group updatetime-row">最后更新时间: 2014-7-15</div>
+                    <div class="form-group operation-row">
+                        <label class="col-xs-2 control-label">雇员 <span class="form-must">*</span></label>
+                        <div class="col-xs-2">
+                            <input type="text" class="form-control" name="name" placeholder="Name">
+                        </div>
+                        <div class="col-xs-2">
+                            <input type="text" class="form-control" name="id" placeholder="id">
+                        </div>
+                        <div class="col-xs-3">
+                            <label class="radio-inline">
+                                <input type="radio" name="sex" value="1">
+                                Male</label>
+                            <label class="radio-inline">
+                                <input type="radio" name="sex" value="0">
+                                Female</label>
+                        </div>
+                        <div class="col-xs-2">
+                            <button type="button" class="btn blue-btn" id="BtnAdd">
+                                添加
+                            </button>
+                            <button type="button" class="btn alarm-btn btn-update">
+                                更新JSON数据
+                            </button>
+                        </div>
+                    </div>
+                    <div id="TableContainer" class="table-container">
+                        <table class="table list">
+                            <thead>
+                                <tr>
+                                    <!-- 排序一般通过后台来排序，这里为了示例使用方式 -->
+                                    <th class="sort" data-order="desc" data-sort-field="id">Id<b>↓</b></th>
+                                    <th class="sort" data-order="asc" data-sort-field="name">Name<b>↑</b></th>
+                                    <th>Sex</th>
+                                    <th>Operation</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Table Contents -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+        <script type="text/x-jquery-tmpl" id="TemplateRow">
+            <tr data-id="${id}">
+            <td class="id">${id}</td>
+            <td class="name">{{html name}}</td>
+            <td class="sex">{{html sex}}</td>
+            <td class="operation"><a href="javascript:;" class="btn-remove">remove</a></td>
+            </tr>
+        </script>
+
+        <script>
+        // this data from server
+        var employeeList = [{
+                name : "Zhan",
+                id : 9000,
+                sex : 0
+            }, {
+                name : "Yang",
+                id : 9001,
+                sex : 0
+            }, {
+                name : "Eric",
+                id : 9002,
+                sex : 1
+            }, {
+                name : "River",
+                id : 9003,
+                sex : 1
+            }, {
+                name : "Shell",
+                id : 9005,
+                sex : 0
+            }, {
+                name : "Meng",
+                id : 9093,
+                sex : 1
+            }
+        ];
+        // require module and begining run
+        require(['simple'], function() {
+            $(function() {
+                console.log('run start...');
+                Simple.Action.run('', {
+                    $container: $('#ContainerSimple'),
+                    rowsData: employeeList
+                });
+            });
+        });
+    </script>
+
+    </body>
+</html>

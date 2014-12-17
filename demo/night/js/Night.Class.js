@@ -4,7 +4,7 @@
  * @file:   Night.Class.js
  * @path:   demo/arm2/js/
  * @desc:   Night模块下基础业对象类
- * @author: yangpengfei@qiyi.com
+ * @author: jarry@baobaoyun.com
  * @date:   2014-7-14
  */
 

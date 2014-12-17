@@ -4,7 +4,7 @@
  * @file:   Night.View.js
  * @path:   demo/arm2/js/
  * @desc:   Night模块下页面业对象类
- * @author: yangpengfei@qiyi.com
+ * @author: jarry@baobaoyun.com
  * @date:   2014-7-14
  */
 

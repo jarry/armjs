@@ -4,7 +4,7 @@
  * @file:   Night.Dao.js
  * @path:   demo/arm2/js/
  * @desc:   负责Night模块远程调用的静态对象
- * @author: yangpengfei@qiyi.com
+ * @author: jarry@baobaoyun.com
  * @date:   2014-7-14
  */
 

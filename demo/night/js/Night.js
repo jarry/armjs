@@ -4,7 +4,7 @@
  * @file:   Night.js
  * @path:   demo/arm2/js/
  * @desc:   Night模块中对象与版本声明
- * @author: yangpengfei@qiyi.com
+ * @author: jarry@baobaoyun.com
  * @date:   2014-7-14
  */
 

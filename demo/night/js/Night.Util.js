@@ -4,7 +4,7 @@
  * @file:   Night.Util.js
  * @path:   demo/arm2/js/
  * @desc:   Night静态公共方法
- * @author: yangpengfei@qiyi.com
+ * @author: jarry@baobaoyun.com
  * @date:   2014-7-14
  */
 

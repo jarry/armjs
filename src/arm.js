@@ -1903,7 +1903,9 @@
                 if (this.module) {
                     this.action = this.module.getAction();
                 }
-                this.view   = view;
+                this.name = data.name;
+                this.view = view;
+                this.dao = properties.dao || this.action.getDao();
                 this.options = _.deepClone(data.options) || {};
                 _.extend(this.options, options);
                 // _.extend(true, this.options, options); // deep extend
@@ -1961,6 +1963,7 @@
                 if (this.module) {
                     this.action = this.module.getAction();
                 }
+                this.name = data.name;
                 this['class'] = clazz;
                 this.options = _.deepClone(data.options) || {};
                 _.extend(this.options, options);

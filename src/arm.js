@@ -476,7 +476,7 @@
             formater = formater || function(value, obj) {
                 return value;
             };
-            var keyMapIsStr = typeof keyMap == 'string';
+            var keyMapIsStr = (typeof keyMap == 'string');
             var map = keyMapIsStr ? obj : keyMap;
             for (var attr in map) {
                 if ( hasOwnProperty.call(obj, attr) ) {
@@ -485,8 +485,8 @@
                             obj[attr] = formater(obj[attr], obj);
                         }
                     } else {
-                        obj[attr] = typeof map[attr] == 'function' ? map[attr](obj[attr], obj) :
-                            formater(map[attr] || obj[attr], obj);
+                        obj[attr] = (typeof map[attr] == 'function') ? map[attr](obj[attr], obj) :
+                            (map[attr] === undefined || map[attr] === null) ? formater(obj[attr], obj) : map[attr];
                     }
                 }
             }
@@ -856,8 +856,8 @@
                 }
             });
         },
-        // 1: call function, data, handle[callback]
-        // 2: url, type, data, handle. handle is an object or callback
+        // 1: arguments:[call function, param]
+        // 2: arguments:[url, method, param, handle]. handle is an object or callback
         fetch: function() {
             var fn, args;
             if ('function' == typeof arguments[0]) {
@@ -1034,13 +1034,18 @@
             if ('object' != typeof events) {
                 return;
             }
+            var _bind = function(evt, selector, funcList) {
+                _.each(funcList, function(func) {
+                    _util.addEvent(view, evt, selector, func);
+                });
+            };
             for (var item in events) {
                 idx = item.indexOf(' ');
                 idx = idx > 0 ? idx : item.length;
                 evt = item.substr(0, idx);
                 selector = item.substr(++idx);
                 func = events[item];
-                _util.addEvent(view, evt, selector, func);
+                _bind(evt, selector, func.split(','));
             }
         }
     };
@@ -1160,7 +1165,7 @@
         empty: function(options) {
             var attrs = {};
             for (var key in this) {
-                attrs[key] = void 0;
+                delete attrs[key];
             }
             return this.set(attrs, _.extend({}, options));
         },
@@ -1173,15 +1178,16 @@
                 this.set(key, value, options);
             }
         },
-        // 1: call function, data, handle[callback]
-        // 2: url, type, data, handle. handle is an object or callback
-        fetch: function(url, type, data, handle) {
+        // 1, arguments:[call function, params, handle[callback]]
+        // 2, arguments:[url, type, params, handle]. handle is an object or callback
+        fetch: function(url, type, params, handle) {
             var self = this;
-            data = data || {};
+            params = params || {};
             var len = arguments.length;
             var args = slice.call(arguments, 0);
             var _handle = _.extend({
                 success: function(json) {
+                    var data;
                     if (json === undefined) {
                         return self;
                     }
@@ -1194,7 +1200,7 @@
                         }
                     }
 
-                    var data = ('object' == typeof json.data) ? json.data : json;
+                    data = ('object' == typeof json.data) ? json.data : json;
                     self.empty();
                     self.update(data);
                     self.onFetch(data);
@@ -1310,6 +1316,17 @@
         getByValue: function(value) {
             return new ArrayList( _.getByValue(this, value) );
         },
+        getValue: function(key) {
+            var values = this.getValues(key);
+            return values[0];
+        },
+        getValues: function(key) {
+            return this.map(function(item, i) {
+                if (item[key] !== undefined) {
+                    return item[key];
+                }
+            });
+        },
         validModel: function(item) {
             if (this.__model__ === null) {
                 return true;
@@ -1387,6 +1404,9 @@
         },
         has: function(item, comparer) {
             return this.contains(item, comparer);
+        },
+        hasBy: function(attr, value) {
+            return this.containsBy(attr, value);
         },
         contains: function(item, comparer) {
             return _.contains(this, item, comparer);
@@ -1898,14 +1918,14 @@
             }
             function Class(options) {
                 options = options || {};
+                this.name = data.name;
                 _.extend(this, properties);
                 this.module = data.module;
                 if (this.module) {
                     this.action = this.module.getAction();
+                    this.view = view;
+                    this.dao = properties.dao || this.action.getDao();
                 }
-                this.name = data.name;
-                this.view = view;
-                this.dao = properties.dao || this.action.getDao();
                 this.options = _.deepClone(data.options) || {};
                 _.extend(this.options, options);
                 // _.extend(true, this.options, options); // deep extend
@@ -1958,12 +1978,12 @@
             }
             function View(options) {
                 options = options || {};
+                this.name = data.name;
                 _.extend(this, properties);
                 this.module = data.module;
                 if (this.module) {
                     this.action = this.module.getAction();
                 }
-                this.name = data.name;
                 this['class'] = clazz;
                 this.options = _.deepClone(data.options) || {};
                 _.extend(this.options, options);
@@ -1977,7 +1997,7 @@
                 if (!_.isElement(this.options.element)) {
                     logger.warn('new View init:', this, 'is not defined element or $container.');
                 }
-                // data.events = { 'click .selector': 'event'}
+                // data.events = { 'click .selector': 'func,foo'}
                 _util.bindEvents(this, data.events);
                 this.construct = data.construct || data.init || this.init;
                 this.construct.call(this);

@@ -6,17 +6,17 @@
   <meta name="Author" content="">
   <meta name="Keywords" content="">
   <meta name="Description" content="">
-  <script charset="utf-8" type="text/javascript" src="/qui/test/lib/qunit-1.14.0.js"></script>
-  <link charset="utf-8" rel="stylesheet" href="/qui/test/lib/qunit-1.14.0.css">
-  <script charset="utf-8" type="text/javascript" src="/qui/js-src/ui.js"></script>
-  <script charset="utf-8" type="text/javascript" src="/qui/js-src/lib/arm.js"></script>
+  <script src="http://apps.bdimg.com/libs/jquery/2.1.1/jquery.js"></script>
+  <link rel="stylesheet" href="./lib/qunit-1.14.0.css" media="screen">
+  <script src="./lib/qunit-1.14.0.js"></script>
+  <script charset="utf-8" type="text/javascript" src="../src/arm.js"></script>
  </head>
 
  <body>
 <div id="qunit"></div>
 <div id="qunit-fixture"></div>
 <script>
-console.log(Arm);
+//console.log(Arm);
 var items = [
   { id: 1001, type: 1, name: "Edward", value: 21, age: 23 },
   { id: 1002, type: 2, name: "Sharpe"},
@@ -38,7 +38,7 @@ var ModuleTest = Arm.create('Module', {
 ModuleTest.Action = Arm.create('Action', {
     name: 'ModuleTest.Action',
     sayHi: function(obj) {
-        console.log('ModuleTest.Action::sayHi()', this);
+        //console.log('ModuleTest.Action::sayHi()', this);
     }
 });
 ModuleTest.Config = Arm.create('Config', {
@@ -109,7 +109,7 @@ Base.Config = Arm.create('Config', {
 Base.Dao = Arm.create('Dao', {
     name: 'Base.Dao',
     success: function(json) {
-        console.log('success:', json);
+        //console.log('success:', json);
         return;
         $(document).tips({
             type: 'success',
@@ -197,10 +197,10 @@ Mo.Dao = Arm.create('Dao', {
     get: function(url, type, data, handle) {
         this.ajax(url || './data.json', type || 'get', { d: new Date() }, handle || {
             success: function(data) {
-                console.log('success:', data.length);
+                //console.log('success:', data.length);
             },
             fail: function(data) {
-                console.log('fail:', data.length);
+                //console.log('fail:', data.length);
             }
         });
         return this;
@@ -219,17 +219,17 @@ test( "create Dao extendBase Test", function() {
 });
 Base.Util = Arm.create('Util', {
     max: function(a, b, text) {
-        // console.log('max:', test);
+        // //console.log('max:', test);
         return Math.max(a, b);
     }
 }, {});
 Mo.Util = Arm.create('Util', {
     min: function(a, b) {
-        // console.log('min:', test);
+        // //console.log('min:', test);
         return Math.min(a, b);
     },
     add: function(a, b, text) {
-        // console.log('add:', test);
+        // //console.log('add:', test);
         return a + b;
     },
     operator: function(a, b, func) {
@@ -372,7 +372,7 @@ Mo.View = Arm.create('View', {
         // $.on('')
     },
     run: function() {
-        // console.log(this);
+        // //console.log(this);
     }
 }, {
     

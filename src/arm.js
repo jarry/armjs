@@ -15,7 +15,7 @@
  *          </ol>
  * @reference: underscore, jQuery, backbone, emberjs, angularjs
  * @author: lichunping(jarryli@gmail.com)
- * @version: 0.1.0
+ * @version: 1.0.0
  * @date:   2014-03-09
  */
 
@@ -38,7 +38,8 @@
     var doc     = document,
         breaker = {},
         console = root.console,
-        logger  = console || {};
+        logger  = console || {},
+        version = '1.0.0';
 
     if (!logger.log) {
         logger.log = function() {};
@@ -102,7 +103,6 @@
         },
         isObject: function(obj) {
             return ('[object Object]' == objPro.toString.call(obj));
-            // return ( obj !== null && typeof obj === 'object' ) || (typeof obj === 'function');
         },
         isString: function(obj) {
             return ('[object String]' == objPro.toString.call(obj));
@@ -1818,10 +1818,7 @@
             return this;
         },
         extend: function(methods) {
-            if (_.isObjectOrMap) {
-                return _.extend(this, methods);
-            }
-            return this;
+            return _.extend(this, methods);
         },
         getAction: function() {
             return this.action;

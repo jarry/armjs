@@ -6,10 +6,11 @@
   <meta name="Author" content="">
   <meta name="Keywords" content="">
   <meta name="Description" content="">
-  <script charset="utf-8" type="text/javascript" src="/qui/test/lib/qunit-1.14.0.js"></script>
-  <link charset="utf-8" rel="stylesheet" href="/qui/test/lib/qunit-1.14.0.css">
-  <script charset="utf-8" type="text/javascript" src="/qui/js-src/lib/arm.js"></script>
-
+  <script src="http://apps.bdimg.com/libs/jquery/2.1.1/jquery.js"></script>
+  <link rel="stylesheet" href="./lib/qunit-1.14.0.css" media="screen">
+  <script src="./lib/qunit-1.14.0.js"></script>
+  <script charset="utf-8" type="text/javascript" src="../src/arm.js"></script>
+  
  </head>
  <body>
 <script>
@@ -50,7 +51,7 @@ test( "HashMap format", function() {
     l.get(5).format({ 'name': 'Herry' }, function(value) {
         return '' + value + '-ext4321'
     });
-    equal(list.get(5).name, 'Herry-ext4321' , "测试HashMap format" );
+    equal(list.get(5).name, 'Herry' , "测试HashMap format" );
 
     var m = l.get(5).format(
         {
@@ -62,7 +63,7 @@ test( "HashMap format", function() {
             return value + '-ext111'
         });
 
-    deepEqual(m.name, 'Zeros-ext111' , "测试HashMap format" );
+    deepEqual(m.name, 'Zeros' , "测试HashMap format" );
     deepEqual(m.age, 9 , "测试HashMap format" );
 /* 请在控制台输出测试ArrayList的format
 list.format({

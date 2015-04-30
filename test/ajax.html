@@ -6,17 +6,16 @@
   <meta name="Author" content="">
   <meta name="Keywords" content="">
   <meta name="Description" content="">
-  <script charset="utf-8" type="text/javascript" src="/qui/test/lib/qunit-1.14.0.js"></script>
-  <link charset="utf-8" rel="stylesheet" href="/qui/test/lib/qunit-1.14.0.css">
-  <script charset="utf-8" type="text/javascript" src="/qui/js-src/ui.js"></script>
-  <script charset="utf-8" type="text/javascript" src="/qui/js-src/lib/arm.js"></script>
+  <script src="http://apps.bdimg.com/libs/jquery/2.1.1/jquery.js"></script>
+  <link rel="stylesheet" href="./lib/qunit-1.14.0.css" media="screen">
+  <script src="./lib/qunit-1.14.0.js"></script>
+  <script charset="utf-8" type="text/javascript" src="../src/arm.js"></script>
  </head>
-
  <body>
 <div id="qunit"></div>
 <div id="qunit-fixture"></div>
 <script>
-console.log(Arm);
+//console.log(Arm);
 var items = [
   { id: 1001, type: 1, name: "Edward", value: 21, age: 23 },
   { id: 1002, type: 2, name: "Sharpe"},
@@ -67,12 +66,14 @@ module( "group Model fetch" );
     // 1: call function, data, handle[callback]
     // 2: url, type, data, handle. handle is an object or callback
     var ajaxModel = list[0];
-    ajaxModel.fetch('./data.json', null, 'p=123');
+    
     asyncTest( "Model fetch Test", function() {
-        setTimeout(function() {
-            equal(ajaxModel.get('name'), 'Arm', "测试Model fetch1." );
-            start();
-        }, 1);
+    	ajaxModel.onFetch = function(data){
+			 equal(ajaxModel.get('name'), 'Arm', "测试Model fetch1." );
+			 start();
+			 console.log( 'Fetch Data:', data, ajaxModel );
+	    };
+    	ajaxModel.fetch('./data.json', null, 'p=123');
     });
     var ajaxData = list[1];
     ajaxData.onFetch = function(data) {
@@ -80,11 +81,15 @@ module( "group Model fetch" );
     };
     ajaxData.onUpdate = function(data) {
         console.log('this model updat:', data);
-    }
+    };
 
-    // ajaxData.fetch('./data.json', null, 'd=d1');
+    ajaxData.fetch('./data.json', null, 'd=d1');
     var callback = function(data) {
-        console.log('this model form server:', data);
+        //console.log('this model form server:', data);
+        if ('string' === typeof data){
+        	data = JSON.parse(data);
+        }
+        
         if (data.code == 'A00000') {
             ajaxData.update(data.data);
         }
@@ -99,7 +104,7 @@ module( "group Model fetch" );
 module( "group ArrayList fetch" );
     var ajaxList = list.clone();
     ajaxList.onFetch = function(data) {
-        console.log('this arraylist form server:', data);
+        //console.log('this arraylist form server:', data);
     };
     ajaxList.fetch('./list.json', 'get', 'd="timestamp"');
     asyncTest( "Array fetch Test", function() {
@@ -111,14 +116,14 @@ module( "group ArrayList fetch" );
     });
     var ajaxArray = list.clone();
     ajaxArray.onFetch = function(data) {
-        console.log('this arraylist form server:', data);
+        //console.log('this arraylist form server:', data);
     };
     ajaxArray.fetch('./list.json', null, 'd="timestamp', {
         success: function(data) {
-            console.log('this arraylist form server by rewrite handel success:', data);
+            //console.log('this arraylist form server by rewrite handel success:', data);
         },
         error: function(data) {
-            console.log('this arraylist form server by rewrite handel error:', data);
+            //console.log('this arraylist form server by rewrite handel error:', data);
         }
     });
     asyncTest( "Array fetch Test", function() {
@@ -130,13 +135,13 @@ module( "group ArrayList fetch" );
     });
     var xhrData = list.clone();
     xhrData.onFetch = function(data) {
-        console.log('this arraylist form server:', data);
+        //console.log('this arraylist form server:', data);
     };
     var _getData = function(data, callback) {
        Arm._.send('./list.json', null, data, callback);
     };
     xhrData.fetch(_getData, 'data', function(data) {
-        console.log('this arraylist form server _getData:', data);
+        //console.log('this arraylist form server _getData:', data);
     });
 
     Arm._.ajax({
@@ -147,10 +152,10 @@ module( "group ArrayList fetch" );
             name: 'test111'
         },
         success: function() {
-            console.log('success:', arguments);
+            //console.log('success:', arguments);
         },
         error: function() {
-            console.log('fail:', arguments);
+            //console.log('fail:', arguments);
         }
     });
 
@@ -162,10 +167,10 @@ module( "group ArrayList fetch" );
             value: 'abc123'
         },
         success: function() {
-            console.log('success:', arguments);
+            //console.log('success:', arguments);
         },
         error: function() {
-            console.log('fail:', arguments);
+            //console.log('fail:', arguments);
         }
     });
 

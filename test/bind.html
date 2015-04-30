@@ -6,10 +6,10 @@
   <meta name="Author" content="">
   <meta name="Keywords" content="">
   <meta name="Description" content="">
-  <script charset="utf-8" type="text/javascript" src="/qui/test/lib/qunit-1.14.0.js"></script>
-  <link charset="utf-8" rel="stylesheet" href="/qui/test/lib/qunit-1.14.0.css">
-  <script charset="utf-8" type="text/javascript" src="/qui/js-src/ui.js"></script>
-  <script charset="utf-8" type="text/javascript" src="/qui/js-src/lib/arm.js"></script>
+ <script src="http://apps.bdimg.com/libs/jquery/2.1.1/jquery.js"></script>
+  <link rel="stylesheet" href="./lib/qunit-1.14.0.css" media="screen">
+  <script src="./lib/qunit-1.14.0.js"></script>
+  <script charset="utf-8" type="text/javascript" src="../src/arm.js"></script>
  </head>
 
  <body>
@@ -18,7 +18,7 @@
 <div id="qunit-fixture"></div>
 <div id="AOPTest" style="background-color:green" data-before="false" data-after="false">aop</div>
 <script>
-console.log(Arm);
+//console.log(Arm);
 // 测试数据不要随便改动
 var items = [
   { id: 1001, type: 1, name: "Edward", value: 21, age: 23 },
@@ -36,13 +36,16 @@ var Foo = {
     age: 30
 };
 
+
 var list = Arm.create('ArrayList', items);
+
 var Mo = Arm.create('Module', {
     name: 'Mo'
 });
 Mo.Action = Arm.create('Action', {
     name: 'Mo.Action'
 });
+
 Mo.Class = Arm.create('Class', {
     name: 'Mo.Class',
     properties: {
@@ -67,20 +70,20 @@ Mo.Class = Arm.create('Class', {
     },
     // 用于bind, curry测试
     addAge: function(a, b, c) {
-        console.log(this, this.age);
+        //console.log(this, this.age);
         var age = (this.age || 0) + (a || 0) + (b || 0) + (c || 0);
-        console.log('addAge:', arguments, age);
+        //console.log('addAge:', arguments, age);
         return age;
     },
     // 用于curry测试
     callMe: function(param, fn) {
-        console.log('callFun:', arguments);
+        //console.log('callFun:', arguments);
         return fn(param);
     },
     // 用于AOP测试
     aopTest: function(p) {
         var $ele = $('#AOPTest');
-        console.log('aopTest:', arguments);
+        //console.log('aopTest:', arguments);
         // 如果前置条件执行了则会执行改变，这里用data-before来表示
         if ( $('#AOPTest').data('before') == 'true' ) {
             $ele.html(p + '| AOP Test success.');
@@ -90,7 +93,7 @@ Mo.Class = Arm.create('Class', {
         return false;
     },
     printAll: function() {
-        console.log(arguments);
+        //console.log(arguments);
     }
 });
 
@@ -109,6 +112,7 @@ test( "Function bind test", function() {
     equal(addAge(1, 2, 3), 36, "测试 function bind. result: 36");
     equal(addAge(3, 4, 5), 42, "测试 function bind. result: 42");
 });
+
 module( "group Arm._ curry test" );
 test( "Function curry test", function() {
     var clazz = Mo.Action.getClass();
@@ -129,7 +133,7 @@ test( "Function curry test", function() {
     // curry传入参数
     var curry = clazz.addAge.curry(1, 2);
     var result = curry(4);
-    console.log(curry, typeof result, result);
+    //console.log(curry, typeof result, result);
     equal(result, 7, "测试curry test. result: 7");
     // 对象函数科里化直接执行
     equal(Mo.Action.getClass().addAge.curry(4, 4)(4), 12,
@@ -143,7 +147,7 @@ test( "Function curry test(set scope)", function() {
     c.addAge.scope = c;
     var curry = c.addAge.curry(1, 2);
     var result = curry(4);
-    console.log(curry, typeof result, result);
+    //console.log(curry, typeof result, result);
     // 101(对象age) + (1 + 2)(curry时传参) + 4(调用时传参)
     equal(result, 108, "测试curry test. result: 108");
     // 
@@ -225,7 +229,7 @@ test( "Function AOP test", function() {
         }
         $ele.html(p + ':after test succes.');
     }
-    console.log('Function AOP test:');
+    //console.log('Function AOP test:');
     // aopTest函数bind before函数(before),并立即执行, true参数会传递给before以及aopTest函数
     //c.aopTest.before(before)(true);
     // before函数会在aopTest执行前执行，会把data-before改为true
@@ -235,7 +239,7 @@ test( "Function AOP test", function() {
     c.aopTest.before(before).after(after)(true);
 
     // 请通过控制台查看结果
-    console.log("$('#AOPTest').data():", $('#AOPTest').data());
+    //console.log("$('#AOPTest').data():", $('#AOPTest').data());
     equal(1, 1, "测试curry function AOP. result: AOP");
 
     /* around 实际意义不大，暂不提供

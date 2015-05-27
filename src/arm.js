@@ -31,6 +31,8 @@
             root.ender || root.$ || root.mooltools || root.Arm_$ ) );
     }
 }(this, function(root, Arm, $) {
+    'use strict';
+    
     var _Arm;
     root        = window || this;
     var _       = Arm._ || {};
@@ -1963,7 +1965,7 @@
             }
             Class.prototype.constructor = Class;
             Class.prototype.__super__ = Class.__super__ || Class;
-            Class.prototype.constructor.name = 'Class';
+            // Class.prototype.constructor.name = 'Class';
             return Class;
         },
         _createView: function (data, config) {
@@ -2121,7 +2123,7 @@
             }
             View.prototype.constructor = View;
             View.prototype.__super__ = View.__super__ || View;
-            View.prototype.constructor.name = 'View';
+            // View.prototype.constructor.name = 'View';
             return View;
         },
         /**

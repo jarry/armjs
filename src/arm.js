@@ -1036,7 +1036,9 @@
             }
             var _bind = function(evt, selector, funcList) {
                 _.each(funcList, function(func) {
-                    _util.addEvent(view, evt, selector, func);
+                    if (func) {
+                        _util.addEvent(view, evt, selector, func);
+                    }
                 });
             };
             for (var item in events) {
@@ -1045,7 +1047,7 @@
                 evt = item.substr(0, idx);
                 selector = item.substr(++idx);
                 func = events[item];
-                _bind(evt, selector, func.split(','));
+                _bind(evt, selector, func.split(/[,; ]/));
             }
         }
     };
@@ -2049,7 +2051,11 @@
                 },
                 // trigger('click', [params] | '.selector' | element, [params])
                 trigger: function (event, selector, args) {
+                    if (!event) {
+                        return;
+                    }
                     var $container = this.getContainer();
+                    var events = event.split(/[,; ]/);
                     // if selector is string or element, using delegate
                     if (_.isString(selector) || _.isElement(selector)) {
                         $container = $container.find(selector);
@@ -2057,9 +2063,18 @@
                         args = selector;
                     }
                     if ($container.trigger) {
-                        $container.trigger(event, args);
+                        _.each(events, function(evt) {
+                            // @see jQuery trigger: function( type, data ) {
+                            $container.trigger(evt, args);
+                        });
                     }
                     return this;
+                },
+                triggerHandler: function(event, args) {
+                    var $container = this.getContainer();
+                    if ($container.triggerHandler) {
+                        $container.triggerHandler(event, args);
+                    }
                 },
                 getClass: function () {
                     return this['class'] || this.getAction().getClass();
@@ -2091,8 +2106,7 @@
             for (var item in data) {
                 if (
                     item !== 'options' &&
-                    item !== 'properties' &&
-                    item !== 'events'
+                    item !== 'properties'
                 ) {
                     View.prototype[item] = data[item];
                 }

@@ -1120,6 +1120,10 @@
         extend: function(source) {
             return _.extend(this, source);
         },
+        each: function(iterator, scope) {
+            _.each(this, iterator, scope);
+            return this;
+        },
         clone: function() {
             return _.clone(true, this);
         },
@@ -2168,6 +2172,7 @@
 
     Arm._ = _;
     Arm.HashMap = HashMap;
+    Arm.Map = Arm.HashMap;
     Arm.Model = Model;
     Arm.Collection = ArrayList;
     Arm.ArrayList = ArrayList;

@@ -522,15 +522,34 @@
             }
             return false;
         },
-        groupBy: function(arr, field) {
-            var result = {};
+        groupBy: function(arr, field, resultType) {
+            resultType = resultType || 'map';
+            var result = resultType == 'map' ? {} : [];
             var iterator = _.isFunction(field) ? field : function(obj) {
                 return obj[field];
             };
+            var _indexOfItemByValue = function(key, value, arr) {
+                for (var i = 0, l = arr.length; i < l; i++) {
+                    if (arr[i] && arr[i][0] && arr[i][0][key] === value) {
+                        return i;
+                    }
+                }
+                return -1;
+            };
             _.each(arr, function(item, index) {
                 var key = iterator(item, index);
-                result[key] = result[key] || [];
-                result[key].push(item);
+                var idx;
+                if (resultType != 'map') {
+                    idx = _indexOfItemByValue(field, item[field], result);
+                    if (idx >= 0) {
+                        result[idx].push(item);
+                    } else {
+                        result.push(new ArrayList(item));
+                    }
+                } else {
+                    result[key] = result[key] || new ArrayList();
+                    result[key].push(item);
+                }
             });
             return result;
         },
@@ -1059,7 +1078,7 @@
         _.extend(this, data);
     };
     HashMap.prototype = {
-        constructor: HashMap,
+        constructor: root.Map || HashMap,
         hashCode: function() {
             return _.hashCode(this.toString());
         },
@@ -1241,6 +1260,9 @@
         toPlainJSON: function() {
             return _util.toJSON(this.toPlain());
         },
+        toJSON: function() {
+            return this.toPlainJSON();
+        },
         toString: function() {
             try {
                 return root.JSON ? _.stringifyJSON(this) : this.valueOf().toLocaleString();
@@ -1261,7 +1283,7 @@
         _.extend(this, data);
     };
     Model.prototype = {
-        constructor: Model,
+        constructor: root.Map || Model,
         // defined attributeKey and Type for data serialize
         attributeKey: 'id',
         attributeType: 'type',
@@ -1282,7 +1304,7 @@
         this.push();
     };
     ArrayList.prototype = {
-        constructor: ArrayList,
+        constructor: root.Array || ArrayList,
         valueOf: function() {
             return slice.call(this);
         },
@@ -1509,6 +1531,9 @@
         toPlainJSON: function() {
             return _util.toJSON(this.toPlain());
         },
+        toJSON: function() {
+            return this.toPlainJSON();
+        },
         toArray: function(options) {
             // return slice.call(this, options);
             var result = [];
@@ -1543,8 +1568,11 @@
         indexBy: function(filed) {
             return new HashMap( _.indexBy(this, filed) );
         },
-        groupBy: function(filed) {
-            return new HashMap( _.groupBy(this, filed) );
+        groupBy: function(filed, resultType) {
+            var args = slice.call(arguments, 0);
+            args.unshift(this);
+            var result = _.groupBy.apply(this, args);
+            return (result instanceof Array) ? new ArrayList(result) : new HashMap(result);
         },
         sortBy: function(filed, order) {
             var arr = _.sortBy(this, filed, order);
@@ -1563,9 +1591,9 @@
         }
     };
 
-    _.each(['shift', 'push', 'sort', 'pop', 'reverse', 'join',
-        'splice', 'concat', 'slice', 'forEach', 'map', 'some', 'every',
-        'filter', 'reduce', 'reduceRight'], function(method) {
+    _.each(['concat', 'entries', 'every', 'filter', 'forEach', 'join', 'keys',
+        'map', 'pop', 'push', 'reduce', 'reduceRight', 'reverse', 'shift', 'slice',
+        'some', 'sort', 'splice', 'unshift'], function(method) {
             ArrayList.prototype[method] = arrPro[method];
         }
     );

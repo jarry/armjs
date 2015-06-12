@@ -573,8 +573,7 @@
             if (!_.isArrayOrList(arr) && !(arr instanceof ArrayList)) {
                 return arr;
             }
-            var tmp = arr.slice(0);
-            tmp.sort(function (a, b) {
+            arr.sort(function (a, b) {
                 var left = a[field], right = b[field];
                 // default is asc
                 if (left === undefined || left === null) {
@@ -591,7 +590,7 @@
                 }
                 return 0;
             });
-            return tmp;
+            return arr;
         },
         orderBy: function(arr, field, order) {
             return _.sortBy.apply(_, slice.call(arguments));
@@ -1580,6 +1579,65 @@
         },
         orderBy: function(filed, order) {
             return this.sortBy(filed, order);
+        },
+        changeIndex: function(fromIdx, toIdx) {
+            if (fromIdx < this.length && fromIdx >= 0) {
+                this.splice(toIdx, 0, this.splice(fromIdx, 1)[0]);
+            }
+            return this;
+        },
+        changeOrder: function(fromOrder, toOrder) {
+            return this.changeIndex(fromOrder - 1, toOrder - 1);
+        },
+        swapOrder: function(fromOrder, toOrder) {
+            if (fromOrder < 1 || toOrder < 1 || fromOrder > this.length ||
+                toOrder > this.length || fromOrder == toOrder) {
+                return this;
+            }
+            this.changeOrder(fromOrder, toOrder);
+            if (fromOrder < toOrder) {
+                this.changeOrder(toOrder - 1, fromOrder);
+            } else {
+                this.changeOrder(toOrder + 1, fromOrder);
+            }
+            return this;
+        },
+        setOrder: function(fromOrder, toOrder, orderKey) {
+            orderKey = orderKey || 'order';
+            this.sortBy(orderKey, 'asc');
+            if (fromOrder === undefined || toOrder === undefined) {
+                return this;
+            }
+            var _getIndexByOrder = function(list, order) {
+                var l = list.length;
+                while (l--) {
+                    if (list[l][orderKey] == order) {
+                        return l;
+                    }
+                }
+                return -1;
+            };
+            // set toOrder scope
+            if (toOrder < this.get(0)[orderKey]) {
+                toOrder = this.get(0)[orderKey];
+            } else if (toOrder > this.get(this.length - 1)[orderKey]) {
+                toOrder = this.get(this.length - 1)[orderKey];
+            }
+            // fromOrder must be in list
+            var fromIdx = _getIndexByOrder(this, fromOrder);
+            if (fromIdx < 0) {
+                return this;
+            }
+            var indexGap = Math.abs(fromOrder - toOrder);
+            var increment = (fromOrder < toOrder) ? -1 : 1;
+            var idxVar;
+            // reset order to items of adjust range
+            do {
+                idxVar = (increment < 1) ? (fromIdx + indexGap) : (fromIdx - indexGap);
+                this[idxVar][orderKey] += increment;
+            } while(indexGap--);
+            this[fromIdx][orderKey] = toOrder;
+            return this;
         },
         extend: function(source) {
             return _.extend(this, source);

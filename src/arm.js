@@ -559,7 +559,9 @@
             }
             var tmp = {};
             _.each(arr, function(item) {
-                tmp[item[field]] = item;
+                if (tmp[item[field]] === undefined) {
+                    tmp[item[field]] = item;
+                }
             });
             return tmp;
         },
@@ -1467,7 +1469,20 @@
         lastIndexOf: function(item, from, comparer) {
             return _.lastIndexOf(this, item, from, comparer);
         },
-        each: arrPro.forEach || function(iterator, scope) {
+        indexOfBy: function(attr, value) {
+            var i = 0,
+                l = this.length;
+
+            while (i < l) {
+                if (this[i][attr] === value) {
+                    return i;
+                }
+                i++;
+            }
+
+            return -1;
+        },
+        'each': arrPro.forEach || function(iterator, scope) {
             _.each(this, iterator, scope);
             return this;
         },
@@ -1608,35 +1623,29 @@
             if (fromOrder === undefined || toOrder === undefined) {
                 return this;
             }
-            var _getIndexByOrder = function(list, order) {
-                var l = list.length;
-                while (l--) {
-                    if (list[l][orderKey] == order) {
-                        return l;
-                    }
-                }
-                return -1;
-            };
-            // set toOrder scope
+            // set toOrder aviable
             if (toOrder < this.get(0)[orderKey]) {
                 toOrder = this.get(0)[orderKey];
             } else if (toOrder > this.get(this.length - 1)[orderKey]) {
                 toOrder = this.get(this.length - 1)[orderKey];
             }
-            // fromOrder must be in list
-            var fromIdx = _getIndexByOrder(this, fromOrder);
+            var fromIdx = this.indexOfBy(orderKey, fromOrder);
             if (fromIdx < 0) {
                 return this;
             }
             var indexGap = Math.abs(fromOrder - toOrder);
             var increment = (fromOrder < toOrder) ? -1 : 1;
             var idxVar;
-            // reset order to items of adjust range
+            // add or reduce 1 order for items in adjust range
             do {
                 idxVar = (increment < 1) ? (fromIdx + indexGap) : (fromIdx - indexGap);
-                this[idxVar][orderKey] += increment;
+                if (this[idxVar] !== undefined) {
+                    this[idxVar][orderKey] += increment;
+                }
             } while(indexGap--);
+
             this[fromIdx][orderKey] = toOrder;
+            
             return this;
         },
         extend: function(source) {

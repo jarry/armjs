@@ -500,6 +500,7 @@
             };
             var result = [];
             var a = one ? slice.call(one) : [];
+            two = _.isArrayOrList(two) ? two : [two];
             for (var i = 0, l = a.length; i < l; i++) {
                 if (_.indexOf(result, a[i], 0, comparer) >= 0) {
                     continue;
@@ -507,6 +508,9 @@
                 if (_.indexOf(two, a[i], 0, comparer) < 0) {
                     result.push(a[i]);
                 }
+            }
+            if (two.toArray) {
+                two = two.toArray();
             }
             return result.concat(two);
         },
@@ -1538,7 +1542,10 @@
         toPlain: function() {
             var result = [];
             _.each(this, function(item) {
-                result.push(item.toPlain());
+                if (item.toPlain) {
+                    item = item.toPlain();
+                }
+                result.push(item);
             });
             return result;
         },
@@ -1575,6 +1582,16 @@
         },
         intersection: function(arr, comparer) {
             return new ArrayList(_.intersection(this, arr, comparer));
+        },
+        concat: function() {
+            var args = slice.call(arguments, 0);
+            var len = args.length;
+            while(len--) {
+                if (args[len].toArray) {
+                    args[len] = args[len].toArray();
+                }
+            }
+            return arrPro.concat.apply(this.toArray(), args);
         },
         union: function(arr, comparer) {
             return new ArrayList(_.union(this, arr, comparer));
@@ -1658,7 +1675,7 @@
         }
     };
 
-    _.each(['concat', 'entries', 'every', 'filter', 'forEach', 'join', 'keys',
+    _.each(['entries', 'every', 'filter', 'forEach', 'join', 'keys',
         'map', 'pop', 'push', 'reduce', 'reduceRight', 'reverse', 'shift', 'slice',
         'some', 'sort', 'splice', 'unshift'], function(method) {
             ArrayList.prototype[method] = arrPro[method];
@@ -1896,7 +1913,7 @@
     // Dao: front-end data interact with server by ajax or socket etc.
     Dao = function Dao(data) {
         _.extend(this, data);
-        this.module = _util.getModuleByName(data.module);
+        this.module = _util.getModuleByName(data.name);
         if (this.module) {
             this.action = this.module.getAction();
         }
@@ -2103,7 +2120,7 @@
                 this.construct.call(this);
             }
             if (data.extendBase !== false && Base.View) {
-                _.inherits(View, Arm.View);
+                _.inherits(View, Base.View);
             }
             _.inherits(View, Arm.View);
             if (typeof View.prototype.init != 'function') {

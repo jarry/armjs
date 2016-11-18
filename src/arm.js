@@ -1,6 +1,6 @@
 /*!
  * The open module JavaScript framework
- * 
+ *
  * @license Licensed under MIT license
  * @class   JavaScript MVC frameworks for enterprise application development
  * @name    Arm
@@ -32,7 +32,7 @@
     }
 }(this, function(root, Arm, $) {
     'use strict';
-    
+
     var _Arm;
     root        = window || this;
     var _       = Arm._ || {};
@@ -56,7 +56,7 @@
     }
 
     // defined basic data objects
-    var HashMap, ArrayList, Model;
+    var HashMap, Map, ArrayList, List, Router, Model;
 
     // defined built-in objects
     var Module, Config, Util, Dao, Action;
@@ -631,6 +631,7 @@
          * @param {boolean} copy whether copy constructor properties and static properties
          */
         inherits: function(Child, Parent, copy) {
+            copy = copy === undefined ? false : copy;
             if (_.isUndefined(Child) || _.isUndefined(Parent)) {
                 return Child;
             }
@@ -638,12 +639,13 @@
             var parentProto = Parent.prototype;
             var childProto = Child.prototype;
             function Super() {}
+
             // copy properties for constructor and override Child
             if (copy === true) {
                 if (parentProto && parentProto.hasOwnProperty('constructor')) {
-                    Child = parentProto.constructor;
+                    Super = parentProto.constructor;
                 } else {
-                    Child = function() {
+                    Super = function() {
                         Parent.apply(this, arguments);
                     };
                 }
@@ -651,7 +653,7 @@
             // copy static propertis
             if (copy === true) {
                 for (var item in Parent) {
-                    if (Child[item] !== undefined) {
+                    if (Child[item] === undefined) {
                         Child[item] = Parent[item];
                     }
                 }
@@ -1083,7 +1085,7 @@
         _.extend(this, data);
     };
     HashMap.prototype = {
-        constructor: root.Map || HashMap,
+        constructor: HashMap,
         hashCode: function() {
             return _.hashCode(this.toString());
         },
@@ -1223,7 +1225,7 @@
                     if (json === undefined) {
                         return self;
                     }
-                
+
                     if ('string' === typeof json) {
                         try {
                             json = _.parseJSON(json);
@@ -1288,7 +1290,7 @@
         _.extend(this, data);
     };
     Model.prototype = {
-        constructor: root.Map || Model,
+        constructor: Model,
         // defined attributeKey and Type for data serialize
         attributeKey: 'id',
         attributeType: 'type',
@@ -1662,7 +1664,7 @@
             } while(indexGap--);
 
             this[fromIdx][orderKey] = toOrder;
-            
+
             return this;
         },
         extend: function(source) {
@@ -1682,7 +1684,7 @@
         }
     );
 
-    // Module: one module of application, include sub modules 
+    // Module: one module of application, include sub modules
     Module = function Module(data, config) {
         this.create = Arm.create;
         _.extend(this, data);

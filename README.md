@@ -11,10 +11,10 @@ ArmJS
 
 
 # npm install
-$ npm i arm-js
+$ npm i arm-js   [arm-js](https://www.npmjs.com/package/arm-js)
 
 # import 或 require
-> example usage [/arm-example](example)
+> example usage [arm-example](./arm-example)
 
 # basic data object
 

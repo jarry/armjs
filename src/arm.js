@@ -42,7 +42,7 @@
         breaker = {},
         console = root.console,
         logger  = console || {},
-        version = '1.0.0';
+        version = '1.0.1';
 
     if (!logger.log) {
         logger.log = function() {};

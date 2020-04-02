@@ -13,7 +13,8 @@
  *          <li>create objects</li>
  *          <li>run action</li>
  *          </ol>
- * @reference: underscore, jQuery, backbone, emberjs, angularjs
+ * @reference: underscore, backbone
+ * @dependency: jQuery
  * @author: lichunping(jarryli@gmail.com)
  * @version: 1.0.0
  * @date:   2014-03-09

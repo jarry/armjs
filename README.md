@@ -9,11 +9,12 @@ ArmJS
 <li>run action</li>
 </ol>
 
-# npm install 
+
+# npm install
 $ npm i arm-js
 
 # import 或 require
-> example usage [./arm-example](example)
+> example usage [/arm-example](example)
 
 # basic data object
 
@@ -158,3 +159,8 @@ $ npm i arm-js
 ```html
     see demo and test, require jQuery, jQuery Tmpl, and Qunit
 ```
+
+# development install && build
+$ npm install
+$ npm run build
+

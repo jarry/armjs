@@ -21,18 +21,18 @@
 
 (function(root, factory) {
     if (typeof define === 'function' && define.amd) {
-        define(['jquery', 'exports'], function($, exports) {
+        define(['exports'], function($, exports) {
             root.Arm = factory(root, exports, $ || root.$);
         });
     } else if (typeof exports !== 'undefined') {
         factory(root, exports, $);
     } else {
         root.Arm = factory(root, {}, (root.jQuery || root.Zepto ||
-            root.ender || root.$ || root.mooltools || root.Arm_$ ) );
+            root.$ || root.Arm_$ ) );
     }
 }(this, function(root, Arm, $) {
     'use strict';
-
+    Arm = Arm || {}
     var _Arm;
     root        = window || this;
     var _       = Arm._ || {};
@@ -664,7 +664,7 @@
                 _.extend(proto, childProto);
             }
             Child.prototype.constructor = Child;
-            Child.__super__ = Parent.prototype;
+            Child.__super__ = Super;
             Child.extend = function(methods) {
                 for (var attr in methods) {
                     proto[attr] = methods[attr];

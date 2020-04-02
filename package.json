@@ -1,0 +1,35 @@
+{
+  "author": {
+    "name": "jarryli"
+  },
+  "bugs": {
+    "url": "https://github.com/jarry/armjs/issues"
+  },
+  "bundleDependencies": false,
+  "deprecated": false,
+  "description": "Rapid frontend development framework for web application",
+  "download": "https://github.com/jarry/armjs",
+  "homepage": "https://github.com/jarry/armjs",
+  "keywords": [
+    "arm-js",
+    "js",
+    "mvp",
+    "mvc"
+  ],
+  "license": "ISC",
+  "main": "./dist/arm.js",
+  "name": "arm-js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jarry/armjs.git"
+  },
+  "scripts": {
+    "build": "uglifyjs src/arm.js -c -m -o dist/arm.js --toplevel",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "title": "arm-js web framework",
+  "version": "0.0.3",
+  "dependencies": {
+    "uglify-js": "^3.8.1"
+  }
+}

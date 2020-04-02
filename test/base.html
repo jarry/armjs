@@ -9,7 +9,7 @@
   <script src="http://apps.bdimg.com/libs/jquery/2.1.1/jquery.js"></script>
   <link rel="stylesheet" href="./lib/qunit-1.14.0.css" media="screen">
   <script src="./lib/qunit-1.14.0.js"></script>
-  <script charset="utf-8" type="text/javascript" src="../src/arm.js"></script>
+  <script charset="utf-8" type="text/javascript" src="../dist/arm.js"></script>
   
  </head>
  <body>
@@ -107,7 +107,7 @@ test( "ArrayList indexOf()", function() {
 });
 test( "ArrayList getBy...()", function() {
     deepEqual(list.getByValue([101, 'Jarry'])[0].name, 'Jarry', '测试ArrayList getBy...()');
-    deepEqual(list.getByAttribute('age')[0].name, 'Edward', '测试ArrayList getBy...()');
+    equal(list.getByAttribute('age').orderBy('age')[0].name, 'Zeros', '测试ArrayList getBy...()');
 });
 
 test( "ArrayList lastIndexOf()", function() {

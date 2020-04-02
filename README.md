@@ -9,6 +9,14 @@ ArmJS
 <li>run action</li>
 </ol>
 
+# npm install 
+$ npm i arm-js
+
+# import 或 require
+> example usage [./arm-example](example)
+
+# basic data object
+
 ## [armjs manual/开发手册](/doc/ "参考手册")
 
 # basic data object

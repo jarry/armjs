@@ -1,4 +1,4 @@
-import Arm from 'arm-js'
+import Arm from 'armjs2'
 import welcome from './welcome'
 
 const arr = [

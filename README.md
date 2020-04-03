@@ -12,9 +12,9 @@ ArmJS
 
 # npm install
 ```shell
-$ npm i arm-js   
+$ npm i armjs2
 ```
-> see npm: [arm-js](https://www.npmjs.com/package/arm-js)
+> see npm: [armjs2](https://www.npmjs.com/package/armjs2)
 
 # import 或 require
 > example usage [arm-example](./arm-example)

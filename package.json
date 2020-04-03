@@ -21,7 +21,7 @@
    },
   "license": "ISC",
   "main": "./dist/arm.js",
-  "name": "arm-js",
+  "name": "armjs2",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/jarry/armjs.git"
@@ -31,8 +31,8 @@
     "build": "uglifyjs src/arm.js -c -m -o dist/arm.js --toplevel",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "title": "arm-js web framework",
-  "version": "1.0.0",
+  "title": "armjs web framework",
+  "version": "1.0.1",
   "devDependencies": {
     "uglify-js": "^3.8.1"
   }

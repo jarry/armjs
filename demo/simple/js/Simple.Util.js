@@ -10,7 +10,7 @@
 
 define(
     [
-        'simple/Simple'
+        './Simple'
     ],
     function(Simple) {
         Simple.Util = Arm.create('Util', {

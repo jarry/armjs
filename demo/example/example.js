@@ -9,17 +9,11 @@
  * date: 2014-06-25
  */
 define(
-    'example', [
-        '../../../js-src/base/Base',
-        '../../../js-src/base/Base.Config',
-        '../../../js-src/base/Base.Util',
-        '../../../js-src/base/Base.Action',
-        '../../../js-src/base/Base.Class',
-        '../../../js-src/base/Base.View',
-        '../../../js-src/base/Base.Dao',
-        'js/Example'
+    [
+        'js/Example',
+        'js/Example.Action',
     ],
-    function() {
-    
+    function(o) {
+        return o
     }
 );

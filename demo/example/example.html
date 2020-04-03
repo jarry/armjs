@@ -11,63 +11,32 @@
   <script type="text/javascript" src="http://backbonejs.org/backbone.js"></script>
   <script type="text/javascript" src="http://code.jquery.com/jquery-1.11.0.js"></script>
 -->
-<script type="text/javascript" src="../core.js"></script>
-    <script type="text/javascript" src="../../../js-src/qui.js"></script>
-    <script type="text/javascript" src="example.js"></script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.0.0/require.min.js"></script>
+  <script>
+      // 提前加载依赖项
+      requirejs.config(
+          {
+              // 上线模式，指向压缩合并后的地址(一般是线上某个路径)
+              // baseUrl: './dist/js'
+              paths: {
+                  // 注意共同库的这个路径
+                  'jquery': '../lib/jquery',
+              },
+              // 开发模式
+              baseUrl: './'
+          }
+      );
+  </script>
 </head>
-<h1>Arm最佳实践之一般复杂的界面</h1>
-<h2>功能包括：</h2>
-<ul>
-<li>从服务端获取数据，更新Model</li>
-<li>调整当前列表的顺序</li>
-<li>删除一行</li>
-<li>保存数据，只提供id列表(按顺序以逗号间隔)</li>
-</ul>
-<body>
 
-<style>
-.Container-Example {
-    background-color: #f1f1f1;
-}
-.Container-Example .table {
-    width: 98%;
-    margin: 10px;
-}
-.Container-Example .table tr {
-    text-align: center;
-}
-.Container-Example .table tr:nth-child(even) {
-    background-color: rgb(235, 235, 205);
-}
-.Container-Example .table tbody tr:hover {
-    background-color: rgb(213, 213, 255);
-}
-</style>
-<div class="Container-Example" id="Container">
-    <table class="table">
-        <thead>
-            <tr>
-            <th class="thead-id" >No</th>
-            <th class="thead-name">Name</th>
-            <th class="thead-value">Value</th>
-            <th class="thead-control">control</th>
-            </tr>
-        </thead>
-        <tbody>
-        </tbody>
-    </table>
-    <button class="btn btn-update">update to orgin data</button>
-    <button class="btn btn-all">get current data</button>
-    <div id="ContainerOutput"></div>
-</div>
-<a href="#" onclick="window.open('view-source:' + window.location.href)" target="_blank">view source</a>
-<script>
-require.config({baseUrl:'.'});
-require(['example'], function() {
-    Example.Action.run('', {
-        $container: $('#Container')
+<body>
+<script type="text/javascript">
+var dependency = ['../lib/jquery.js', '../lib/jquery.tmpl.js', '../lib/jquery.tmplPlus.js', '../../dist/arm.js'];
+requirejs(dependency, function() {
+    require(['example'], function(Example) {
+        Example.Action.say('Tony');
     });
-})
+});
 </script>
  </body>
 </html>

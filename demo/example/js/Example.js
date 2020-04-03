@@ -9,12 +9,11 @@
  */
 
 define(
-    [
-        ''
-    ],
-    function(Example) {
-        window.Example = Arm.create('Module', {
+    [],
+    function() {  
+        Example = Arm.create('Module', {
             name: 'Example'
         });
+        return Example;
     }
 );

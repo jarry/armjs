@@ -3,32 +3,22 @@
     <head>
         <meta charset="UTF-8">
         <title>Sample with Arm</title>
-
-        <!--
-        开发模式与线上模式通过脚本自动替换
-        -->
-
-        <link href="dist/css/qui.css" rel="stylesheet">
-
-        <!-- // QUI开发模式，指向css-src下 -->
-        <link href="./css-src/sample.css" rel="stylesheet">
-
-        <!-- // QUI开发模式，指向js-src下，然后本地可以通过proxy代理到trunk的qui src目录 -->
-        <script type="text/javascript" src="../core.js"></script>
-
-        <!-- // QUI直接引用压缩合并后的代码模式 -->
-        <!--<script type="text/javascript" src="dist/js/qui.js"></script>-->
-
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.0.0/require.min.js"></script>
         <script>
-            qui.config(
+            // 提前加载依赖项
+            requirejs.config(
                 {
                     // 上线模式，指向压缩合并后的地址(一般是线上某个路径)
                     // baseUrl: './dist/js'
-
+                    paths: {
+                        // 注意共同库的这个路径
+                        'jquery': '../lib/jquery',
+                    },
                     // 开发模式
-                    baseUrl: './js'
+                    baseUrl: './'
                 }
             );
+ 
         </script>
     </head>
     <body>
@@ -121,16 +111,21 @@
                 sex : 1
             }
         ];
-        // require module and begining run
-        require(['simple'], function() {
-            $(function() {
-                console.log('run start...');
-                Simple.Action.run('', {
-                    $container: $('#ContainerSimple'),
-                    rowsData: employeeList
+        var dependency = ['../lib/jquery.js', '../lib/jquery.tmpl.js', '../lib/jquery.tmplPlus.js', '../../dist/arm.js']
+        requirejs(dependency, function() {
+
+            // require module and begining run
+            require(['simple'], function(Simple) {
+                $(function() {
+                    console.log('run start...', Simple);
+                    Simple.Action.run('', {
+                        $container: $('#ContainerSimple'),
+                        rowsData: employeeList
+                    });
                 });
             });
-        });
+
+        })
     </script>
 
     </body>

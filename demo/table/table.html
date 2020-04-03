@@ -5,7 +5,7 @@
   <meta name="Author" content="">
   <meta name="Keywords" content="">
   <meta name="Description" content="">
-<script type="text/javascript" src="core.js"></script>
+<script type="text/javascript" src="./core.js"></script>
 
 </head>
 <h1>Arm基本创建说明</h1>
@@ -55,7 +55,14 @@
 </div>
 <a href="#" onclick="window.open('view-source:' + window.location.href)" target="_blank">view source</a>
 <body>
-
+<script type="text/x-jquery-tmpl" id="TemplateRow">
+<tr data-id="${id}">
+<td class="id">${id}</td>
+<td class="name">${name}</td>
+<td class="value">${value}</td>
+<td class="remove"><a href="javascript:void(0)">remove</a></td>
+</tr>
+</script>
 <script>
 // original data
 var items = [
@@ -68,6 +75,7 @@ var items = [
   { id: 1008, name: "", value: "" },
   { id: 1010, name: null, value: 8 }
 ];
+
 // defined ArrayList
 var list = new Arm.Collection(items);
 // var list = Arm.create('ArrayList', items);
@@ -293,14 +301,7 @@ Module.View = Arm.create('View', {
 });
 // Module.AbcView = Module.View;
 </script>
-<script type="text/x-jquery-tmpl" id="TemplateRow">
-<tr data-id="${id}">
-<td class="id">${id}</td>
-<td class="name">${name}</td>
-<td class="value">${value}</td>
-<td class="remove"><a href="javascript:void(0)">remove</a></td>
-</tr>
-</script>
+
 
 <script>
 /** run begining */

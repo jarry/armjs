@@ -13,7 +13,7 @@
 
 define(
     [
-        'simple/Simple'
+        './Simple'
     ],
     function(Simple) {
         Simple.Config = Arm.create('Config', {

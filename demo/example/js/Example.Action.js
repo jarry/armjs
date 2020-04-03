@@ -15,8 +15,8 @@ define(
     function(Example) {
         Example.Action = Arm.create('Action', {
             name: 'Example.Action',
-            say: function() {
-                alert('hi, boy.');
+            say: function(arg) {
+                alert('hi, boy.' + arg);
             }
         });
     }

@@ -10,7 +10,7 @@
 
 define(
     [
-        'simple/Simple'
+        './Simple'
     ],
     function(Simple) {
         Simple.Dao = Arm.create('Dao', {
@@ -23,7 +23,7 @@ define(
                 // Simple.Dao.ajax(url, 'GET', data, handle);
                 // this.ajax 继承自Base.Dao
                 // 静态方法集合里使用this，要注意this指针可能更改的问题
-                this.ajax(url, 'GET', data, handle);
+                $.ajax(url, 'GET', data, handle);
             }
         });
     }

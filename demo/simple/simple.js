@@ -1,12 +1,5 @@
-qui(
-    'js', [
-        'base/Base',
-        'base/Base.Config',
-        'base/Base.Util',
-        'base/Base.Action',
-        'base/Base.Class',
-        'base/Base.View',
-        'base/Base.Dao',
+define(
+    [
         'js/Simple',
         'js/Simple.Config',
         'js/Simple.Util',
@@ -16,7 +9,8 @@ qui(
         'js/Simple.View',
         'js/Simple.Dao'
     ],
-    function() {
-    
+    function(o) {
+        console.log('simple module loaded.', o)
+        return o
     }
 );

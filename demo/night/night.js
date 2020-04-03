@@ -8,16 +8,8 @@
  * author: Smyle
  * date: 2014-06-25
  */
-qui(
-    'night', [
-        '../../../js-src/base/Base',
-        '../../../js-src/base/Base.Config',
-        '../../../js-src/base/Base.Util',
-        '../../../js-src/base/Base.Action',
-        '../../../js-src/base/Base.Class',
-        '../../../js-src/base/Base.View',
-        '../../../js-src/base/Base.Dao',
-
+define(
+    [
         'js/Night',
         'js/Night.Config',
         'js/Night.Util',
@@ -26,7 +18,7 @@ qui(
         'js/Night.View',
         'js/Night.Dao'
     ],
-    function() {
-    
+    function(o) {
+        return o
     }
 );

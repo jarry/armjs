@@ -15,7 +15,7 @@ define(
     [],
     function() {
         // 创建一个模块，可以参见shell/create-module.sh自动创建
-        window.Simple = Arm.create('Module', {
+        var Simple = Arm.create('Module', {
             name: 'Simple',
             version: '1.0'
         });

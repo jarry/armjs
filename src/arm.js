@@ -22,7 +22,7 @@
 
 (function(root, factory) {
     if (typeof define === 'function' && define.amd) {
-        define(['exports'], function($, exports) {
+        define(['jquery', 'exports'], function($, exports) {
             root.Arm = factory(root, exports, $ || root.$);
         });
     } else if (typeof exports !== 'undefined') {
@@ -60,7 +60,7 @@
     var HashMap, Map, ArrayList, List, Router, Model;
 
     // defined built-in objects
-    var Module, Config, Util, Dao, Action;
+    var Module, Config, Util, Dao, Action, Modules;
     Arm.Class = null;
     Arm.View = null;
     // var Router, Cache, Storage;
@@ -974,7 +974,7 @@
     var _util = {
         getObject: function(obj) {
             if ('string' == typeof obj && obj.length > 0) {
-                obj = _.accessProperty(root, obj);
+                obj = _.accessProperty(Modules, obj);
             }
             return obj;
         },
@@ -1790,7 +1790,7 @@
             fullName = (fullName.substring(0, module.name.length) != module.name) ?
                 (module.name + '.' + fullName) : fullName;
 
-            obj = _.accessProperty(root, fullName);
+            obj = _.accessProperty(Modules, fullName);
 
             // logger.log('Action.get:', arguments, fullName, obj, type);
             var _getInstance = function(Clazz, options, isNew, fullName) {
@@ -1969,6 +1969,8 @@
     _.extend(Arm.View.prototype, Arm.Class.prototype);
     Arm.View.prototype.constructor = Arm.View;
 
+    Modules = {};
+
     _Arm = {
         _data: [],
         _createHashMap: function (data, config) {
@@ -1985,6 +1987,7 @@
                 logger.warn('createModule:', data, ' not input name of `Module`.');
             }
             var instance = new Module(data, config);
+            Modules[instance.name] = instance
             if (config.extendBase !== false) {
                 return _util.extendBase(instance, Base);
             } else {
@@ -2275,7 +2278,7 @@
         // see Action.run
         run: function (action, view, options, instanceOption) {
             if ('string' == typeof action) {
-                action = _.accessProperty(root, action);
+                action = _.accessProperty(Modules, action);
             }
             if (action instanceof Arm.Action) {
                 action.run(view, options, instanceOption);
@@ -2296,6 +2299,7 @@
     Arm.Util = Util;
     Arm.Dao = Dao;
     Arm.Action = Action;
+    Arm.Modules = Modules;
 
     Arm.getBase = function() {
         return Base;

@@ -14,7 +14,7 @@ ArmJS
 ```shell
 $ npm i arm-js   
 ```
-> [arm-js](https://www.npmjs.com/package/arm-js)
+> see npm: [arm-js](https://www.npmjs.com/package/arm-js)
 
 # import 或 require
 > example usage [arm-example](./arm-example)

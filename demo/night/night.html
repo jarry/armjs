@@ -4,9 +4,23 @@
     <meta charset="UTF-8">
     <title>Sample with Arm</title>
     <link href="css/sample.css" rel="stylesheet">
-    <script type="text/javascript" src="../core.js"></script>
-    <script type="text/javascript" src="../../../js-src/qui.js"></script>
-    <script type="text/javascript" src="night.js"></script>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.0.0/require.min.js"></script>
+        <script>
+            // 提前加载依赖项
+            requirejs.config(
+                {
+                    // 上线模式，指向压缩合并后的地址(一般是线上某个路径)
+                    // baseUrl: './dist/js'
+                    paths: {
+                        // 注意共同库的这个路径
+                        'jquery': '../lib/jquery',
+                    },
+                    // 开发模式
+                    baseUrl: './'
+                }
+            );
+ 
+        </script>
 </head>
 <body>
     <h3>使用Arm进行开发的简单样例</h3>
@@ -57,12 +71,15 @@ items = [
       { name: "Meng", empno: 9093, sex: 1 }
 ];
 require.config({baseUrl:'.'});
-require(['night'], function() {
-    Night.Action.run('', {
-        $container: $('#Container'),
-        rowsData: items
+var dependency = ['../lib/jquery.js', '../lib/jquery.tmpl.js', '../lib/jquery.tmplPlus.js', '../../dist/arm.js'];
+requirejs(dependency, function() {
+    require(['night'], function(Night) {
+        Night.Action.run('', {
+            $container: $('#Container'),
+            rowsData: items
+        });
     });
-})
+});
 </script>
 </body>
 </html>

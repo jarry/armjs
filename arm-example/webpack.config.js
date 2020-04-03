@@ -63,6 +63,9 @@ module.exports = {
       //   commonjs: '[name]'
       // },
   },
+  externals: {
+    jquery: 'jQuery'
+  },
   module: {
     rules: [
       // {

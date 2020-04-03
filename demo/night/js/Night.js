@@ -14,7 +14,7 @@
 define(
     [],
     function() {
-        window.Night = Arm.create('Module', {
+        var Night = Arm.create('Module', {
             name: 'Night',
             version: '1.0'
         });

@@ -17,10 +17,7 @@ define(
     ],
     function(Night) {
         Night.Config = Arm.create('Config', {
-            name: 'Night.Config',
-            // Nothing
-            view: Night.View,
-            test: Base.Config
+            name: 'Night.Config'
         });
     }
 );
